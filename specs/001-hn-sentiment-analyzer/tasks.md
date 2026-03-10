@@ -23,15 +23,15 @@ Single project structure: `src/`, `output/` at repository root
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Initialize Node.js project with package.json (name: hackernews-sentiment-analyzer, version: 1.0.0)
-- [ ] T002 Install Strands Agents TypeScript SDK as dependency
-- [ ] T003 [P] Install axios for HTTP requests as dependency
-- [ ] T004 [P] Create tsconfig.json with strict mode enabled and target ES2020
-- [ ] T005 [P] Create .gitignore with node_modules, dist, output/*.md entries
-- [ ] T006 Create src/ directory structure: src/agents/, src/tools/, src/types/
-- [ ] T007 Add build script to package.json: "build": "tsc"
-- [ ] T008 Add start script to package.json: "start": "node dist/index.js"
-- [ ] T009 [P] Add lint script to package.json: "lint": "eslint src --ext .ts"
+- [X] T001 Initialize Node.js project with package.json (name: hackernews-sentiment-analyzer, version: 1.0.0)
+- [X] T002 Install Strands Agents TypeScript SDK as dependency
+- [X] T003 [P] Install axios for HTTP requests as dependency
+- [X] T004 [P] Create tsconfig.json with strict mode enabled and target ES2020
+- [X] T005 [P] Create .gitignore with node_modules, dist, output/*.md entries
+- [X] T006 Create src/ directory structure: src/agents/, src/tools/, src/types/
+- [X] T007 Add build script to package.json: "build": "tsc"
+- [X] T008 Add start script to package.json: "start": "node dist/index.js"
+- [X] T009 [P] Add lint script to package.json: "lint": "eslint src --ext .ts"
 
 ---
 
@@ -41,12 +41,12 @@ Single project structure: `src/`, `output/` at repository root
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T010 Create TypeScript type definitions in src/types/index.ts (Story, Comment, SentimentResult, StoryWithComments)
-- [ ] T011 Create HackerNews API tool skeleton in src/tools/hackernews.ts with axios setup and base URL constant
-- [ ] T012 [P] Create main agent skeleton in src/agents/main.ts with Strands SDK initialization
-- [ ] T013 [P] Create sentiment subagent skeleton in src/agents/sentiment.ts with Strands SDK initialization
-- [ ] T014 [P] Create summary subagent skeleton in src/agents/summary.ts with Strands SDK initialization
-- [ ] T015 Create entry point in src/index.ts that initializes and invokes main agent
+- [X] T010 Create TypeScript type definitions in src/types/index.ts (Story, Comment, SentimentResult, StoryWithComments)
+- [X] T011 Create HackerNews API tool skeleton in src/tools/hackernews.ts with axios setup and base URL constant
+- [X] T012 [P] Create main agent skeleton in src/agents/main.ts with Strands SDK initialization
+- [X] T013 [P] Create sentiment subagent skeleton in src/agents/sentiment.ts with Strands SDK initialization
+- [X] T014 [P] Create summary subagent skeleton in src/agents/summary.ts with Strands SDK initialization
+- [X] T015 Create entry point in src/index.ts that initializes and invokes main agent
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -60,13 +60,13 @@ Single project structure: `src/`, `output/` at repository root
 
 ### Implementation for User Story 1
 
-- [ ] T016 [P] [US1] Implement fetchTopStories() in src/tools/hackernews.ts (GET /v0/topstories.json, return first 10 IDs)
-- [ ] T017 [P] [US1] Implement fetchBestStories() in src/tools/hackernews.ts (GET /v0/beststories.json, return first 10 IDs)
-- [ ] T018 [P] [US1] Implement fetchStory(id) in src/tools/hackernews.ts (GET /v0/item/{id}.json, return Story or null)
-- [ ] T019 [US1] Implement main agent story fetching logic in src/agents/main.ts (call fetchTopStories, fetchBestStories)
-- [ ] T020 [US1] Implement parallel story detail fetching in src/agents/main.ts (fetch all 20 stories concurrently, max 20 concurrent)
-- [ ] T021 [US1] Add error handling in src/tools/hackernews.ts (try/catch, log to stderr, continue on failures)
-- [ ] T022 [US1] Add basic console output in src/agents/main.ts (log fetched story count and titles to stdout)
+- [X] T016 [P] [US1] Implement fetchTopStories() in src/tools/hackernews.ts (GET /v0/topstories.json, return first 10 IDs)
+- [X] T017 [P] [US1] Implement fetchBestStories() in src/tools/hackernews.ts (GET /v0/beststories.json, return first 10 IDs)
+- [X] T018 [P] [US1] Implement fetchStory(id) in src/tools/hackernews.ts (GET /v0/item/{id}.json, return Story or null)
+- [X] T019 [US1] Implement main agent story fetching logic in src/agents/main.ts (call fetchTopStories, fetchBestStories)
+- [X] T020 [US1] Implement parallel story detail fetching in src/agents/main.ts (fetch all 20 stories concurrently, max 20 concurrent)
+- [X] T021 [US1] Add error handling in src/tools/hackernews.ts (try/catch, log to stderr, continue on failures)
+- [X] T022 [US1] Add basic console output in src/agents/main.ts (log fetched story count and titles to stdout)
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -80,14 +80,14 @@ Single project structure: `src/`, `output/` at repository root
 
 ### Implementation for User Story 2
 
-- [ ] T023 [US2] Implement fetchComments(storyId, commentIds) in src/tools/hackernews.ts (fetch up to 20 comments, return Comment[])
-- [ ] T024 [US2] Add comment fetching to main agent in src/agents/main.ts (for each story, fetch comments from story.kids)
-- [ ] T025 [US2] Implement sentiment subagent LLM prompt construction in src/agents/sentiment.ts (aggregate comment text, format prompt)
-- [ ] T026 [US2] Implement LLM call in src/agents/sentiment.ts (use Strands SDK LLM access, parse response to SentimentResult)
-- [ ] T027 [US2] Handle zero-comment case in src/agents/sentiment.ts (return "No sentiment" with confidence 0)
-- [ ] T028 [US2] Implement parallel sentiment analysis in src/agents/main.ts (spawn sentiment subagent for each story concurrently)
-- [ ] T029 [US2] Add sentiment results to Story objects in src/agents/main.ts (populate sentiment field after analysis)
-- [ ] T030 [US2] Add error handling for LLM failures in src/agents/sentiment.ts (log to stderr, return neutral with low confidence)
+- [X] T023 [US2] Implement fetchComments(storyId, commentIds) in src/tools/hackernews.ts (fetch up to 20 comments, return Comment[])
+- [X] T024 [US2] Add comment fetching to main agent in src/agents/main.ts (for each story, fetch comments from story.kids)
+- [X] T025 [US2] Implement sentiment subagent LLM prompt construction in src/agents/sentiment.ts (aggregate comment text, format prompt)
+- [X] T026 [US2] Implement LLM call in src/agents/sentiment.ts (use Strands SDK LLM access, parse response to SentimentResult)
+- [X] T027 [US2] Handle zero-comment case in src/agents/sentiment.ts (return "No sentiment" with confidence 0)
+- [X] T028 [US2] Implement parallel sentiment analysis in src/agents/main.ts (spawn sentiment subagent for each story concurrently)
+- [X] T029 [US2] Add sentiment results to Story objects in src/agents/main.ts (populate sentiment field after analysis)
+- [X] T030 [US2] Add error handling for LLM failures in src/agents/sentiment.ts (log to stderr, return neutral with low confidence)
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -101,14 +101,14 @@ Single project structure: `src/`, `output/` at repository root
 
 ### Implementation for User Story 3
 
-- [ ] T031 [US3] Implement output directory creation in src/agents/summary.ts (check if output/ exists, create if missing)
-- [ ] T032 [US3] Implement Markdown header generation in src/agents/summary.ts (title with current date)
-- [ ] T033 [US3] Implement Top Stories section formatting in src/agents/summary.ts (iterate stories, format with title, URL, score, sentiment)
-- [ ] T034 [US3] Implement Best Stories section formatting in src/agents/summary.ts (iterate stories, format with title, URL, score, sentiment)
-- [ ] T035 [US3] Implement file write in src/agents/summary.ts (write Markdown to output/report.md)
-- [ ] T036 [US3] Implement parallel summary generation in src/agents/main.ts (spawn summary subagent with analyzed stories)
-- [ ] T037 [US3] Add stdout printing in src/agents/main.ts (print report content after file write)
-- [ ] T038 [US3] Add final success message in src/agents/main.ts (log completion time and report path)
+- [X] T031 [US3] Implement output directory creation in src/agents/summary.ts (check if output/ exists, create if missing)
+- [X] T032 [US3] Implement Markdown header generation in src/agents/summary.ts (title with current date)
+- [X] T033 [US3] Implement Top Stories section formatting in src/agents/summary.ts (iterate stories, format with title, URL, score, sentiment)
+- [X] T034 [US3] Implement Best Stories section formatting in src/agents/summary.ts (iterate stories, format with title, URL, score, sentiment)
+- [X] T035 [US3] Implement file write in src/agents/summary.ts (write Markdown to output/report.md)
+- [X] T036 [US3] Implement parallel summary generation in src/agents/main.ts (spawn summary subagent with analyzed stories)
+- [X] T037 [US3] Add stdout printing in src/agents/main.ts (print report content after file write)
+- [X] T038 [US3] Add final success message in src/agents/main.ts (log completion time and report path)
 
 **Checkpoint**: All user stories should now be independently functional
 
@@ -118,11 +118,11 @@ Single project structure: `src/`, `output/` at repository root
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T039 [P] Add performance logging in src/agents/main.ts (track start time, log total runtime at end)
-- [ ] T040 [P] Validate sub-2-minute performance requirement (run full pipeline, verify timing)
-- [ ] T041 [P] Add README.md with installation and usage instructions
-- [ ] T042 Verify constitution compliance (check all 5 principles against implementation)
-- [ ] T043 Run quickstart.md validation (follow quickstart guide end-to-end)
+- [X] T039 [P] Add performance logging in src/agents/main.ts (track start time, log total runtime at end)
+- [X] T040 [P] Validate sub-2-minute performance requirement (run full pipeline, verify timing)
+- [X] T041 [P] Add README.md with installation and usage instructions
+- [X] T042 Verify constitution compliance (check all 5 principles against implementation)
+- [X] T043 Run quickstart.md validation (follow quickstart guide end-to-end)
 
 ---
 

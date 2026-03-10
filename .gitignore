@@ -1,2 +1,20 @@
 .kiro/
 .specify/
+
+# Node.js / TypeScript
+node_modules/
+dist/
+build/
+*.log
+.env*
+
+# Output
+output/*.md
+
+# IDE
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+.vscode/
+.idea/
