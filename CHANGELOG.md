@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added - 2026-03-11
 
+- Create CHANGELOG hook: Added postToolUse hook to auto-update changelog after git commits
 - Per-story sentiment paragraphs with hardened JSON parsing
 - Overall sentiment analysis summary to report via Strands agent
 - Skills configuration for agent capabilities
