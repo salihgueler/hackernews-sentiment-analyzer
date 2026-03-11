@@ -28,6 +28,7 @@ npm run start
 ```
 
 The agent will:
+
 1. Fetch 20 HackerNews stories (10 top + 10 best)
 2. Retrieve comments for each story
 3. Analyze sentiment using LLM
@@ -37,6 +38,7 @@ The agent will:
 ## Output
 
 The generated report includes:
+
 - Date of analysis
 - Top Stories section with titles, URLs, scores, and sentiment
 - Best Stories section with titles, URLs, scores, and sentiment
@@ -58,7 +60,7 @@ This project follows strict architectural principles:
 ✅ **Strict Resource Limits**: 20 stories, 20 comments per story, 20 concurrent requests  
 ✅ **TypeScript Strict Mode**: Full type safety  
 ✅ **Centralized API Access**: All HN calls through `src/tools/hackernews.ts`  
-✅ **CLI-Native Output**: Markdown to file and stdout  
+✅ **CLI-Native Output**: Markdown to file and stdout
 
 ## Performance
 
@@ -82,6 +84,12 @@ npm run build
 npm run lint
 ```
 
+## Social links to contact me
+
+- [LinkedIn](http://linkedin.com/in/salihgueler)
+- [X/Twitter](https://x.com/salihgueler)
+- [BlueSky](https://bsky.app/profile/salihgueler.dev)
+
 ## License
 
-ISC
+MIT

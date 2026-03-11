@@ -11,6 +11,8 @@
   },
   "then": {
     "type": "askAgent",
-    "prompt": "Look at the shell command that just ran. ONLY proceed if the command starts with 'git commit'. If it does NOT start with 'git commit', do absolutely nothing and stop. If it IS a git commit command, then: 1) Run `git log -1 --pretty=format:\"%s\"` to get the commit message, 2) Run `git diff-tree --no-commit-id --name-only -r HEAD` to get changed files, 3) Add a new entry to CHANGELOG.md under today's date in the format: `- <commit summary>: <brief description of what changed based on the files>`."
-  }
+    "prompt": "Look at the shell command that just ran. ONLY proceed if the command starts with 'git add'. If it does NOT start with 'git add', do absolutely nothing and stop. If it IS a git commit command, then: 1) Run `git log -1 --pretty=format:\"%s\"` to get the commit message, 2) Run `git diff-tree --no-commit-id --name-only -r HEAD` to get changed files, 3) Add a new entry to CHANGELOG.md under today's date in the format: `- <commit summary>: <brief description of what changed based on the files>`."
+  },
+  "workspaceFolderName": "hackernews-sentiment-analyzer",
+  "shortName": "changelog-on-commit"
 }
