@@ -61,9 +61,14 @@ export async function generateReport(
     const sentiment = story.sentiment
       ? `${story.sentiment.label} (${story.sentiment.confidence}%)`
       : "No sentiment";
+    const summaryText = story.sentiment?.summary || "";
     markdown += `${index + 1}. ${title}\n`;
     markdown += `   - Score: ${story.score}\n`;
-    markdown += `   - Sentiment: ${sentiment}\n\n`;
+    markdown += `   - Sentiment: ${sentiment}\n`;
+    if (summaryText) {
+      markdown += `   - ${summaryText}\n`;
+    }
+    markdown += `\n`;
   });
 
   // Best Stories section
@@ -73,9 +78,14 @@ export async function generateReport(
     const sentiment = story.sentiment
       ? `${story.sentiment.label} (${story.sentiment.confidence}%)`
       : "No sentiment";
+    const summaryText = story.sentiment?.summary || "";
     markdown += `${index + 1}. ${title}\n`;
     markdown += `   - Score: ${story.score}\n`;
-    markdown += `   - Sentiment: ${sentiment}\n\n`;
+    markdown += `   - Sentiment: ${sentiment}\n`;
+    if (summaryText) {
+      markdown += `   - ${summaryText}\n`;
+    }
+    markdown += `\n`;
   });
 
   // Generate overall sentiment analysis via Strands agent

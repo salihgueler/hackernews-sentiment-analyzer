@@ -21,6 +21,7 @@ export type Comment = {
 export type SentimentResult = {
   label: "positive" | "negative" | "neutral" | "No sentiment";
   confidence: number; // 0-100
+  summary: string; // 1-2 sentence explanation of the sentiment
 };
 
 export type StoryWithComments = Story & {
