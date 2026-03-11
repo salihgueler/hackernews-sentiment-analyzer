@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Update Changelog After Commit",
+  "description": "Automatically adds a meaningful entry to CHANGELOG.md after every commit by reviewing the latest commit message and changed files.",
+  "version": "1",
+  "when": {
+    "type": "postToolUse",
+    "toolTypes": [
+      "shell"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Check if the last shell command was a git commit. If it was, read the latest git commit message and the list of changed files using `git log -1 --pretty=format:\"%s\" and git diff-tree --no-commit-id --name-only -r HEAD`. Then add a concise, meaningful entry to CHANGELOG.md under today's date. Use the format: `- <commit summary>: <brief description of what changed>`. If the last command was not a git commit, do nothing."
+  }
+}
