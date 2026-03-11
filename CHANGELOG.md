@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added - 2026-03-11
 
+- Add resources for implementing agents.
 - Improve CHANGELOG hook detection and add missing changelog entry: Updated hook prompt for more reliable git commit detection and added prior changelog entry
 - Create CHANGELOG hook: Added postToolUse hook to auto-update changelog after git commits
 - Per-story sentiment paragraphs with hardened JSON parsing
