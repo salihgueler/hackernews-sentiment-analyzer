@@ -4,7 +4,7 @@
   "description": "Automatically adds a meaningful entry to CHANGELOG.md after every commit by reviewing the latest commit message and changed files.",
   "version": "1",
   "when": {
-    "type": "postToolUse",
+    "type": "preToolUse",
     "toolTypes": [
       "shell"
     ]
