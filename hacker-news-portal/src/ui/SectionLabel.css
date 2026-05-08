@@ -1,0 +1,15 @@
+/*
+ * SectionLabel primitive (src/ui/SectionLabel.tsx).
+ *
+ * Small-caps eyebrow label used above section headings.
+ */
+
+.ui-section-label {
+  display: inline-block;
+  font-family: var(--font-body);
+  font-size: var(--font-size-micro);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}

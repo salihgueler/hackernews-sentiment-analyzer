@@ -1,0 +1,70 @@
+/*
+ * Motion primitives for the Portal.
+ *
+ * All keyframes and transitions defined here are decorative and
+ * automatically neutralized by the global `prefers-reduced-motion: reduce`
+ * block in tokens.css, which clamps animation-duration and
+ * transition-duration to ~0. Do not rely on motion for any functional
+ * signal — every piece of information also reads statically.
+ */
+
+@keyframes portal-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.reveal-1,
+.reveal-2,
+.reveal-3 {
+  animation: portal-reveal 600ms ease-out both;
+}
+
+.reveal-1 {
+  animation-delay: 0ms;
+}
+
+.reveal-2 {
+  animation-delay: 120ms;
+}
+
+.reveal-3 {
+  animation-delay: 240ms;
+}
+
+/*
+ * Progress-banner shimmer. Applied to an inner rail inside the
+ * GenerationStatus progress banner. Under reduced motion the shimmer
+ * collapses to a static bar; the surrounding role="status" text is the
+ * structural affordance and remains legible either way.
+ */
+
+@keyframes portal-progress-shimmer {
+  0% {
+    background-position: -240px 0;
+  }
+  100% {
+    background-position: 240px 0;
+  }
+}
+
+.progress-rail {
+  height: 3px;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-rule);
+  background-image: linear-gradient(
+    90deg,
+    var(--color-rule) 0%,
+    var(--color-accent) 40%,
+    var(--color-rule) 80%
+  );
+  background-size: 240px 100%;
+  background-repeat: no-repeat;
+  animation: portal-progress-shimmer 1200ms linear infinite;
+  margin-top: var(--space-2);
+}

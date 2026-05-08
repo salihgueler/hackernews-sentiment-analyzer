@@ -1,0 +1,238 @@
+import { useCallback, useEffect, useState } from "react";
+import type { ReactElement } from "react";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+
+import { sortReportsForDisplay } from "../domain/reportMetadata";
+import { EmptyArchiveView } from "../features/reports/EmptyArchiveView";
+import { NotFoundView } from "../features/reports/NotFoundView";
+import { ReportView } from "../features/reports/ReportView";
+import type { ReportMetadata } from "../wireBackend/types";
+import { BackendError } from "../wireBackend/types";
+import { listReports } from "../wireBackend/staticBackend";
+import { Button } from "../ui/Button";
+import { SectionLabel } from "../ui/SectionLabel";
+import { Skeleton } from "../ui/Skeleton";
+import { Layout } from "./layout/Layout";
+
+import "../features/reports/EmptyState.css";
+
+// ---------------------------------------------------------------------------
+// routes.tsx — React Router v6 configuration for the Portal.
+//
+// Route tree:
+//   /                              -> Layout (element)
+//   ├── index                      -> LandingRoute (renders latest report)
+//   ├── reports/:slug              -> ReportView
+//   └── *                          -> NotFoundView
+//
+// Layout is the `element` of the top-level route; every child route renders
+// inside its <Outlet />. `errorElement` is attached at the top-level so any
+// render-time exception thrown under the Outlet is caught by `ErrorFallback`
+// while the Layout (header + Sidebar) remains on screen (Req 1.5, 3.4).
+//
+// The landing route keeps the URL at `/` and picks the most recent report
+// via `sortReportsForDisplay` (Req 1.1, design Property 1). An empty index
+// renders `EmptyArchiveView` in the main view (Req 1.4); a
+// `DATA_SOURCE_UNAVAILABLE` rejection renders a main-view banner with
+// `role="alert"` (Req 9.4) — the Sidebar is a sibling in Layout, so it
+// renders its own error/empty states independently.
+//
+// Realizes design Properties 1 (landing selection) and 5 (route resolution).
+// ---------------------------------------------------------------------------
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Layout />,
+    errorElement: <ErrorFallback />,
+    children: [
+      { index: true, element: <LandingRoute /> },
+      { path: "reports/:slug", element: <ReportView /> },
+      { path: "*", element: <NotFoundView /> },
+    ],
+  },
+]);
+
+/**
+ * Top-level Routes component wrapping `<RouterProvider>`. `main.tsx` mounts
+ * this under `<StrictMode>` so the router drives the whole Portal.
+ */
+export function AppRoutes(): ReactElement {
+  return <RouterProvider router={router} />;
+}
+
+export default AppRoutes;
+
+// ---------------------------------------------------------------------------
+// LandingRoute — "/" handler.
+//
+// Responsibilities:
+//   1. Fetch the Report_Index via `listReports()`.
+//   2. Select the first entry of `sortReportsForDisplay(entries)` — that is
+//      the most recent generatedAt, with slug tie-breaker (Req 1.1,
+//      Property 1).
+//   3. Render `<ReportView slug={selected.slug} initialMetadata={selected}
+//      />` while keeping the URL at "/" (ReportView honors the `slug` prop
+//      over the route param so no navigation is needed, and accepts the
+//      already-resolved metadata so it can skip its own `listReports()`
+//      round-trip on the landing path).
+//   4. Render `EmptyArchiveView` when the index has zero entries (Req 1.4).
+//   5. Render a main-view `role="alert"` banner on a
+//      `DATA_SOURCE_UNAVAILABLE` rejection. The Sidebar is a sibling in
+//      Layout; this branch is only responsible for the main-view message
+//      (Req 9.4).
+// ---------------------------------------------------------------------------
+
+type LandingState =
+  | { readonly kind: "loading" }
+  | { readonly kind: "empty" }
+  | { readonly kind: "unavailable" }
+  | { readonly kind: "ready"; readonly metadata: ReportMetadata };
+
+function LandingRoute(): ReactElement {
+  const [state, setState] = useState<LandingState>({ kind: "loading" });
+
+  useEffect(() => {
+    let cancelled = false;
+
+    setState({ kind: "loading" });
+
+    listReports().then(
+      (entries) => {
+        if (cancelled) return;
+        if (entries.length === 0) {
+          setState({ kind: "empty" });
+          return;
+        }
+        const sorted = sortReportsForDisplay(entries);
+        const first = sorted[0];
+        if (first === undefined) {
+          // Defensive: `sortReportsForDisplay` preserves length, so this
+          // branch is unreachable. Fall back to the empty state rather than
+          // crash.
+          setState({ kind: "empty" });
+          return;
+        }
+        setState({ kind: "ready", metadata: first });
+      },
+      (err: unknown) => {
+        if (cancelled) return;
+        if (
+          err instanceof BackendError &&
+          err.code === "DATA_SOURCE_UNAVAILABLE"
+        ) {
+          setState({ kind: "unavailable" });
+          return;
+        }
+        // Any other class of error degrades to the same "unavailable"
+        // banner rather than tearing down the Layout.
+        setState({ kind: "unavailable" });
+      },
+    );
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (state.kind === "loading") {
+    return LOADING_ARCHIVE_PLACEHOLDER;
+  }
+
+  if (state.kind === "empty") {
+    return <EmptyArchiveView />;
+  }
+
+  if (state.kind === "unavailable") {
+    return <ArchiveUnavailable />;
+  }
+
+  return (
+    <ReportView slug={state.metadata.slug} initialMetadata={state.metadata} />
+  );
+}
+
+// ---------------------------------------------------------------------------
+// ErrorFallback — router-level `errorElement`.
+//
+// Rendered inside the Layout's <Outlet /> when a descendant route throws
+// during render or data loading, so the header and Sidebar stay intact
+// (Req 1.5, 3.4). The copy is intentionally generic; more specific banners
+// ("Report could not be loaded", "Archive unavailable") are surfaced by the
+// views themselves.
+// ---------------------------------------------------------------------------
+
+const ERROR_ILLUSTRATION: ReactElement = (
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 96 96"
+    xmlns="http://www.w3.org/2000/svg"
+    className="empty-state__illustration"
+  >
+    <circle cx="48" cy="48" r="42" fill="var(--color-accent-soft)" />
+    <path
+      d="M48 28v28M48 64v4"
+      stroke="currentColor"
+      strokeWidth="4"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+function ErrorFallback(): ReactElement {
+  const handleRetry = useCallback((): void => {
+    if (typeof window !== "undefined") {
+      window.location.reload();
+    }
+  }, []);
+
+  return (
+    <section className="empty-state" role="alert">
+      {ERROR_ILLUSTRATION}
+      <SectionLabel>Portal</SectionLabel>
+      <h2 className="empty-state__title">Something went wrong</h2>
+      <p className="empty-state__body">
+        We hit an unexpected error while loading this view. A reload usually
+        clears any in-flight state.
+      </p>
+      <div className="empty-state__actions">
+        <Button variant="primary" onClick={handleRetry}>
+          Retry
+        </Button>
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// ArchiveUnavailable — main-view surface when `listReports()` rejects on
+// the landing route. Uses the same empty-state chrome as the other
+// fallback views for consistency.
+// ---------------------------------------------------------------------------
+
+function ArchiveUnavailable(): ReactElement {
+  return (
+    <section className="empty-state" role="alert">
+      <SectionLabel>Archive</SectionLabel>
+      <h2 className="empty-state__title">Archive unavailable</h2>
+      <p className="empty-state__body">
+        We could not reach the report index. Refresh the page or try again
+        shortly.
+      </p>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Static JSX hoisted to module scope (rendering-hoist-jsx). Alert banners
+// stay dynamic because their copy or role is contextual.
+// ---------------------------------------------------------------------------
+
+const LOADING_ARCHIVE_PLACEHOLDER: ReactElement = (
+  <section className="empty-state" aria-busy="true">
+    <Skeleton variant="line" width="60%" height="2rem" />
+    <Skeleton variant="line" width="40%" />
+    <Skeleton variant="line" />
+    <Skeleton variant="line" width="80%" />
+  </section>
+);

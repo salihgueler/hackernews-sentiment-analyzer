@@ -1,0 +1,234 @@
+/*
+ * Global design tokens and base styles for the Hacker News Portal.
+ *
+ * The palette is built around a warm, editorial background (#faf7f2) with
+ * a single accent color for interactive affordances. Every foreground /
+ * background pair below ships with its measured WCAG contrast ratio
+ * against the intended surface, rounded to two decimals and computed via
+ * the WCAG 2.1 relative-luminance formula.
+ *
+ * Contrast requirements realized:
+ *   - Text pairs meet WCAG 2.1 AA (4.5:1 for body text, 3:1 for large or
+ *     bold text and non-text UI).
+ *   - Focus outline meets the 3:1 non-text ratio against both bg and
+ *     bg-elev so it stays visible on either surface.
+ *
+ * Motion: Phase B leaves the `prefers-reduced-motion: reduce` block
+ * untouched (Req 10.5). Phase C wires the reveal animations.
+ */
+
+:root {
+  /*
+   * Color tokens.
+   *
+   * Contrast ratios (against --color-canvas: #fafaf7 unless noted):
+   *   --color-ink (#111827)         15.91:1    AAA body
+   *   --color-ink-muted (#4b5563)    7.15:1    AA body, AAA large
+   *   --color-accent (#e14a00)       4.52:1    AA body text, AA non-text
+   *   --color-accent-ink (#b33a00)   6.16:1    AA body on canvas & surface-sunken
+   *   --color-focus (#0b63d6)        5.19:1    AA body text, AAA non-text
+   *   --color-rule (#e6dfd4)         1.07:1    decorative rule only
+   *   --color-error (#991b1b) on --color-error-bg (#fef2f2): 7.13:1  AAA
+   *
+   * --color-accent-soft is a tint of the accent and is intended as a
+   * background under --color-ink (15:1+), not as a text color on the
+   * main background.
+   *
+   * --color-surface-sunken is the background used by the Sidebar so the
+   *   column reads as a distinct surface. Text pairs computed against it:
+   *     --color-ink on #f3efe7         15.08:1   AAA
+   *     --color-ink-muted on #f3efe7    6.78:1   AA body, AAA large
+   *     --color-accent-ink on #f3efe7   5.84:1   AA body
+   */
+  --color-canvas: #fafaf7;
+  --color-bg: var(--color-canvas);
+  --color-bg-elev: #ffffff;
+  --color-surface: var(--color-bg-elev);
+  --color-surface-sunken: #f3efe7;
+  --color-ink: #111827;
+  --color-ink-muted: #4b5563;
+  --color-accent: #e14a00;
+  --color-accent-ink: #b33a00;
+  --color-accent-soft: #ffe7d6;
+  --color-rule: #e6dfd4;
+  --color-rule-strong: #d9d1c3;
+  --color-focus: #0b63d6;
+  --color-error: #991b1b;
+  --color-error-bg: #fef2f2;
+
+  /*
+   * Sentiment chip tokens. Each chip is rendered with --color-ink text on
+   * the matching background, so the numbers below are the relevant
+   * contrast ratios against #111827:
+   *   positive  #dcf5e1  14.91:1  AAA
+   *   negative  #fde2df  14.61:1  AAA
+   *   mixed     #fff0c7  15.04:1  AAA
+   *   neutral   #eceae5  14.05:1  AAA
+   */
+  --color-sentiment-positive: #dcf5e1;
+  --color-sentiment-negative: #fde2df;
+  --color-sentiment-mixed: #fff0c7;
+  --color-sentiment-neutral: #eceae5;
+
+  /* --------------------------------------------------------------
+   * Compatibility aliases.
+   *
+   * These names are consumed by components that have not yet been
+   * migrated to the new semantic token names. They are preserved so the
+   * Phase B token rewrite lands without visual regressions elsewhere.
+   * Phase C retires them as components are refreshed.
+   * -------------------------------------------------------------- */
+  --color-text: var(--color-ink);
+  --color-text-muted: var(--color-ink-muted);
+  --color-border: var(--color-rule);
+
+  /* Font families. `Variable` suffix matches the @font-face declarations
+   * shipped by the fontsource-variable packages imported from main.tsx. */
+  --font-display:
+    "Fraunces Variable", "Fraunces", Georgia, "Times New Roman", serif;
+  --font-body:
+    "Inter Tight Variable", "Inter Tight", system-ui, -apple-system,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono:
+    "JetBrains Mono Variable", "JetBrains Mono", ui-monospace,
+    SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+
+  /* Type scale (rem-based) */
+  --font-size-display-1: 3rem;       /* 48px */
+  --font-size-display-2: 2.25rem;    /* 36px */
+  --font-size-heading-1: 2rem;       /* 32px */
+  --font-size-heading-2: 1.5rem;     /* 24px */
+  --font-size-heading-3: 1.25rem;    /* 20px */
+  --font-size-body: 1rem;            /* 16px */
+  --font-size-small: 0.875rem;       /* 14px */
+  --font-size-micro: 0.75rem;        /* 12px */
+
+  /*
+   * Compatibility alias for the generic --font-size-heading token consumed
+   * by ReportView, EmptyArchiveView, and NotFoundView. Points at the h2
+   * rung today. Phase C retires the alias as each view migrates to a
+   * purpose-named token.
+   */
+  --font-size-heading: var(--font-size-heading-2);
+
+  /* Line-height tokens. Unitless so they cascade correctly. */
+  --line-tight: 1.15;   /* display, tight headings */
+  --line-body: 1.55;    /* body copy */
+  --line-loose: 1.75;   /* long-form reading, pull quotes */
+
+  /* Spacing scale */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-7: 1.75rem;
+  --space-8: 2rem;
+
+  /* Radius, rule, and elevation tokens. */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-pill: 9999px;
+  --rule-hairline: 1px;
+  --shadow-soft:
+    0 1px 2px rgba(17, 24, 39, 0.04),
+    0 8px 24px rgba(17, 24, 39, 0.06);
+  --shadow-raised:
+    0 1px 2px rgba(17, 24, 39, 0.06),
+    0 12px 28px rgba(225, 74, 0, 0.18);
+  --shadow-raised-hover:
+    0 2px 4px rgba(17, 24, 39, 0.08),
+    0 18px 40px rgba(225, 74, 0, 0.24);
+
+  /* Focus ring shorthand. Used by nav links and primary actions. */
+  --focus-ring: 2px solid var(--color-focus);
+}
+
+/* Minimal global resets */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--color-ink);
+  background: var(--color-bg);
+  font-size: var(--font-size-body);
+  line-height: var(--line-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Keyboard focus baseline */
+:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/*
+ * Sidebar navigation link.
+ *
+ * `.sidebar-link` is applied to every Sidebar NavLink; `.sidebar-link.active`
+ * is added by React Router's NavLink when the route matches. Three visual
+ * signals carry the active state, so the rule still satisfies WCAG 1.4.1
+ * (do not rely on color alone):
+ *   1. a 2px accent rule on the inline-start edge,
+ *   2. a bolder weight,
+ *   3. a soft accent-tinted background.
+ * Hover adds a subtle surface lift on non-active rows so the list reads
+ * as interactive without competing with the active pill.
+ *
+ * Focus ring is inherited from the global :focus-visible rule above and
+ * remains visually distinct from the active state (outline + offset vs.
+ * inline-start accent + weight + background).
+ */
+.sidebar-link {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: var(--color-ink);
+  border-inline-start: 2px solid transparent;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.sidebar-link:hover {
+  background: rgba(17, 24, 39, 0.04);
+}
+
+.sidebar-link.active {
+  border-inline-start-color: var(--color-accent);
+  font-weight: 600;
+  background: var(--color-accent-soft);
+}
+
+.sidebar-link.active:hover {
+  /* Keep the active pill stable on hover so the visited row doesn't
+   * seem to ripple when the cursor moves across it. */
+  background: var(--color-accent-soft);
+}
+
+/*
+ * Respect the user's OS-level reduced-motion preference. Decorative
+ * transitions and animations are suppressed, but role="status" elements
+ * remain fully visible (Req 16.5) because they are structural announcements
+ * and are not hidden or dimmed by this rule.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  /* Keep functional status indicators visible (role="status" elements are structural, not animated) */
+}

@@ -1,0 +1,39 @@
+/*
+ * Chip primitive (src/ui/Chip.tsx).
+ *
+ * Mono-token-styled chip used for sentiment labels and compact date /
+ * metadata tags. Colors for the sentiment tones come from the
+ * `--color-sentiment-*` tokens; tone="neutral" is the default and also
+ * the surface used by the generic date chip.
+ */
+
+.ui-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  min-height: 1.5rem;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-micro);
+  line-height: var(--line-tight);
+  color: var(--color-ink);
+  background: var(--color-sentiment-neutral);
+  white-space: nowrap;
+}
+
+.ui-chip--positive {
+  background: var(--color-sentiment-positive);
+}
+
+.ui-chip--negative {
+  background: var(--color-sentiment-negative);
+}
+
+.ui-chip--mixed {
+  background: var(--color-sentiment-mixed);
+}
+
+.ui-chip--neutral {
+  background: var(--color-sentiment-neutral);
+}

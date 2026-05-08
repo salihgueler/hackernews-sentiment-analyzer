@@ -1,0 +1,55 @@
+/*
+ * Portal shell (src/app/layout/Layout.tsx).
+ *
+ * A slim masthead sits at the top of every route: a small-caps eyebrow
+ * label (`SectionLabel`) above a display-serif site title, with the
+ * primary Generate Report button anchored to the trailing edge on the
+ * same row. Below the masthead, the Sidebar sits on a sunken surface
+ * and the main content area shares a hairline rule.
+ *
+ * Tokens drive every color, size, and spacing choice. No value is
+ * hard-coded.
+ */
+
+.app-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-6);
+  padding: var(--space-6) var(--space-8) var(--space-5) var(--space-8);
+  border-bottom: var(--rule-hairline) solid var(--color-rule);
+  background: var(--color-canvas);
+}
+
+.app-header__brand {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.app-header__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--font-size-display-2);
+  line-height: var(--line-tight);
+  letter-spacing: -0.015em;
+  color: var(--color-ink);
+}
+
+.app-body {
+  display: flex;
+  align-items: stretch;
+  /* Subtract the masthead's vertical padding (space-6 + space-5) plus the
+   * title line so the body fills the viewport without a scroll bounce. */
+  min-height: calc(100vh - 7.5rem);
+}
+
+.app-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: var(--space-6) var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
