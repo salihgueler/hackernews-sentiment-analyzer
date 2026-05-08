@@ -25,11 +25,23 @@ import type { GenerationStage } from "../../wireBackend/types";
 //                          and a user-visible reason, stays until dismissed
 //                          (Req 5.6, 7.3, 7.4).
 //
-// The provider renders `{children}` followed by a banner region that reflects
-// the current status. The simplest call site is:
+// Rendering is split in two:
+//   - `GenerationStatusProvider` owns the shared state and exposes setters
+//     through `GenerationStatusContext`. It renders only `{children}`.
+//   - `GenerationStatusBanner` is a standalone component that consumes the
+//     same context and renders the role="status"/role="alert" region.
+//     Call sites mount it where the banner should appear in the visual
+//     flow. The Portal Layout places it inside `<main>` above `<Outlet />`
+//     so the notice sits above the active view rather than below it.
+//
+// The simplest composition is therefore:
 //
 //     <GenerationStatusProvider>
-//       <App />
+//       <Header />
+//       <main>
+//         <GenerationStatusBanner />
+//         <Outlet />
+//       </main>
 //     </GenerationStatusProvider>
 // ---------------------------------------------------------------------------
 
@@ -85,8 +97,10 @@ export interface GenerationStatusProviderProps {
 }
 
 /**
- * Provider that owns the generation-status state, exposes setters to
- * descendants, and renders the accompanying banner region after `children`.
+ * Provider that owns the generation-status state and exposes setters to
+ * descendants. Renders `{children}` only — call sites that want the
+ * banner region render `<GenerationStatusBanner />` wherever it should
+ * appear in the visual flow.
  */
 export function GenerationStatusProvider({
   children,
@@ -123,9 +137,20 @@ export function GenerationStatusProvider({
   return (
     <GenerationStatusContext.Provider value={value}>
       {children}
-      <GenerationStatusBanner state={state} clear={clear} />
     </GenerationStatusContext.Provider>
   );
+}
+
+// ---------------------------------------------------------------------------
+// Public banner component. Reads the current status from the surrounding
+// provider and renders a role="status"/role="alert" region accordingly.
+// Returns `null` in the idle state so the Layout flow stays clean
+// (rendering-conditional-render: avoid an empty wrapper element).
+// ---------------------------------------------------------------------------
+
+export function GenerationStatusBanner(): ReactElement | null {
+  const { state, clear } = useGenerationStatus();
+  return <GenerationStatusBannerView state={state} clear={clear} />;
 }
 
 // ---------------------------------------------------------------------------
@@ -133,15 +158,15 @@ export function GenerationStatusProvider({
 // management and the banner remains a pure function of `(state, clear)`.
 // ---------------------------------------------------------------------------
 
-interface GenerationStatusBannerProps {
+interface GenerationStatusBannerViewProps {
   readonly state: GenerationStatusState;
   readonly clear: () => void;
 }
 
-function GenerationStatusBanner({
+function GenerationStatusBannerView({
   state,
   clear,
-}: GenerationStatusBannerProps): ReactElement | null {
+}: GenerationStatusBannerViewProps): ReactElement | null {
   if (state.kind === "idle") {
     return null;
   }

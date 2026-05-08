@@ -11,30 +11,6 @@ Go through and implement the tasks below for the project under `hacker-news-port
 
 These are the concrete defects and best-practice misses found in the audit. They are ordered so every later phase builds on a clean base.
 
-### Task 1. Fix broken / stale CSS tokens
-
-- [ ] 1.1 Audit `src/styles/tokens.css` and confirm `--font-size-heading` is not defined.
-- [ ] 1.2 Add `--font-size-heading: var(--font-size-heading-2);` to the `:root` block so existing usages resolve to a real value (temporary; Phase B replaces the scale wholesale).
-- [ ] 1.3 Grep for every `var(--font-size-heading)` callsite (currently `ReportView.tsx`, `EmptyArchiveView.tsx`, `NotFoundView.tsx`) and verify they now render at the intended size.
-- [ ] 1.4 Verify no other `var(--...)` in the repo references an undefined token.
-- Rule source: correctness / silent fallbacks; not a skill rule, but a real bug.
-
-### Task 2. Give the active NavLink a visible style
-
-- [ ] 2.1 Add a `.sidebar-link.active` CSS rule (left accent bar + bolder weight) to `tokens.css` or a new `Sidebar.module.css`.
-- [ ] 2.2 Replace the inline style on `NavLink` in `src/app/layout/Sidebar.tsx` with a stable `className="sidebar-link"` plus the `isActive` suffix.
-- [ ] 2.3 Confirm `aria-current="page"` is still emitted by React Router's built-in behavior.
-- [ ] 2.4 Verify focus ring (`:focus-visible`) still lands on the link and is visually distinct from the active state.
-- Rule source: WCAG 1.4.1 (color/identifier alone). Matches the `frontend-design` skill's guidance that active states must be visually intentional.
-
-### Task 3. Move the generation banner above `<Outlet />`
-
-- [ ] 3.1 In `src/features/generate/GenerationStatus.tsx`, split `GenerationStatusProvider` so the banner region is exposed as a separate `<GenerationStatusBanner />` component instead of being rendered as the last child.
-- [ ] 3.2 In `src/app/layout/Layout.tsx`, render `<GenerationStatusBanner />` inside `<main>` above `<Outlet />`, not at the end of the provider tree.
-- [ ] 3.3 Confirm `role="status"` / `role="alert"` semantics are preserved on the banner element.
-- [ ] 3.4 Verify the banner still clears on successful navigation after a run.
-- Rule source: UX correctness; also supports `rendering-conditional-render` (banner absence returns `null`, not an empty wrapper).
-
 ### Task 4. Eliminate the duplicate `listReports()` render on landing
 
 - [ ] 4.1 In `src/app/routes.tsx`, extend `LandingRoute` to pass the selected `ReportMetadata` as an `initialMetadata` prop to `ReportView`.
@@ -191,6 +167,30 @@ Every component rewrite must continue to satisfy the same a11y and state-machine
 - Rule source: workspace steering rule — update existing `README.md` only when public API or architecture changes.
 
 ## Completed Tasks
+
+### Phase A — Task 1. Fix broken / stale CSS tokens
+
+- [x] 1.1 Audit `src/styles/tokens.css` and confirm `--font-size-heading` is not defined.
+- [x] 1.2 Add `--font-size-heading: var(--font-size-heading-2);` to the `:root` block so existing usages resolve to a real value (temporary; Phase B replaces the scale wholesale).
+- [x] 1.3 Grep for every `var(--font-size-heading)` callsite (currently `ReportView.tsx`, `EmptyArchiveView.tsx`, `NotFoundView.tsx`) and verify they now render at the intended size.
+- [x] 1.4 Verify no other `var(--...)` in the repo references an undefined token.
+- Rule source: correctness / silent fallbacks; not a skill rule, but a real bug.
+
+### Phase A — Task 2. Give the active NavLink a visible style
+
+- [x] 2.1 Add a `.sidebar-link.active` CSS rule (left accent bar + bolder weight) to `tokens.css` or a new `Sidebar.module.css`.
+- [x] 2.2 Replace the inline style on `NavLink` in `src/app/layout/Sidebar.tsx` with a stable `className="sidebar-link"` plus the `isActive` suffix.
+- [x] 2.3 Confirm `aria-current="page"` is still emitted by React Router's built-in behavior.
+- [x] 2.4 Verify focus ring (`:focus-visible`) still lands on the link and is visually distinct from the active state.
+- Rule source: WCAG 1.4.1 (color/identifier alone). Matches the `frontend-design` skill's guidance that active states must be visually intentional.
+
+### Phase A — Task 3. Move the generation banner above `<Outlet />`
+
+- [x] 3.1 In `src/features/generate/GenerationStatus.tsx`, split `GenerationStatusProvider` so the banner region is exposed as a separate `<GenerationStatusBanner />` component instead of being rendered as the last child.
+- [x] 3.2 In `src/app/layout/Layout.tsx`, render `<GenerationStatusBanner />` inside `<main>` above `<Outlet />`, not at the end of the provider tree.
+- [x] 3.3 Confirm `role="status"` / `role="alert"` semantics are preserved on the banner element.
+- [x] 3.4 Verify the banner still clears on successful navigation after a run.
+- Rule source: UX correctness; also supports `rendering-conditional-render` (banner absence returns `null`, not an empty wrapper).
 
 ---
 

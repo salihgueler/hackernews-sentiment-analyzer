@@ -2,7 +2,10 @@ import type { CSSProperties, ReactElement } from "react";
 import { Outlet } from "react-router-dom";
 
 import { GenerateReportButton } from "../../features/generate/GenerateReportButton";
-import { GenerationStatusProvider } from "../../features/generate/GenerationStatus";
+import {
+  GenerationStatusBanner,
+  GenerationStatusProvider,
+} from "../../features/generate/GenerationStatus";
 import { Sidebar } from "./Sidebar";
 
 // ---------------------------------------------------------------------------
@@ -17,7 +20,8 @@ import { Sidebar } from "./Sidebar";
 //     <div class="layout-body">
 //       <Sidebar />
 //       <main id="main">
-//         <Outlet />   <-- nested route content or route errorElement
+//         <GenerationStatusBanner />  <-- above the active view
+//         <Outlet />                   <-- nested route content or route errorElement
 //       </main>
 //     </div>
 //   </GenerationStatusProvider>
@@ -25,9 +29,9 @@ import { Sidebar } from "./Sidebar";
 // Why this shape:
 //   - `GenerationStatusProvider` wraps the whole shell so the banner region
 //     and the `useGenerationStatus` hook are available on both `/` and
-//     `/reports/:slug` (Req 5.1, 6.3, 6.4, 7.3). The provider renders its
-//     banner after `children`, so the notice sits directly below the Layout
-//     content regardless of which route is active.
+//     `/reports/:slug` (Req 5.1, 6.3, 6.4, 7.3). The provider only exposes
+//     state; the banner itself is mounted explicitly above `<Outlet />` so
+//     progress/error notices sit above the active view and not below it.
 //   - `GenerateReportButton` lives in the header so it is visible on every
 //     route without being duplicated by each view (Req 5.1).
 //   - `Sidebar` is a sibling of `<main>` rather than a child, so a route-level
@@ -51,6 +55,7 @@ export function Layout(): ReactElement {
       <div style={bodyStyle}>
         <Sidebar />
         <main id="main" style={mainStyle}>
+          <GenerationStatusBanner />
           <Outlet />
         </main>
       </div>
