@@ -233,7 +233,6 @@ const progressStyle: CSSProperties = {
   borderRadius: "4px",
   fontSize: "var(--font-size-small)",
   color: "var(--color-text)",
-  marginTop: "var(--space-3)",
 };
 
 const bannerStyle: CSSProperties = {
@@ -246,7 +245,6 @@ const bannerStyle: CSSProperties = {
   borderRadius: "4px",
   fontSize: "var(--font-size-small)",
   color: "var(--color-text)",
-  marginTop: "var(--space-3)",
 };
 
 const errorStyle: CSSProperties = {
@@ -260,7 +258,6 @@ const errorStyle: CSSProperties = {
   fontSize: "var(--font-size-small)",
   color: "var(--color-error)",
   background: "var(--color-error-bg)",
-  marginTop: "var(--space-3)",
 };
 
 const bannerTextStyle: CSSProperties = {

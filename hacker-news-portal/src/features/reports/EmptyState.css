@@ -8,14 +8,16 @@
   max-width: 52ch;
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-4);
   align-items: flex-start;
+  padding-block: var(--space-4);
 }
 
 .empty-state__illustration {
-  width: 6rem;
-  height: 6rem;
+  width: 4.5rem;
+  height: 4.5rem;
   color: var(--color-accent);
+  opacity: 0.9;
 }
 
 .empty-state__title {
@@ -34,6 +36,6 @@
 .empty-state__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
-  margin-top: var(--space-2);
+  gap: var(--space-3);
+  margin-top: var(--space-3);
 }
