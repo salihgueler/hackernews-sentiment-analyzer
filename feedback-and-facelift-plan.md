@@ -17,14 +17,6 @@ These are the concrete defects and best-practice misses found in the audit. They
 
 No visual components change in this phase. The goal is to land tokens, fonts, and helpers so the Phase C component refactors are small diffs.
 
-### Task 9. Self-host the new font stack
-
-- [ ] 9.1 Add `@fontsource-variable/fraunces`, `@fontsource-variable/inter-tight`, `@fontsource-variable/jetbrains-mono` to dependencies.
-- [ ] 9.2 Import the required weight ranges in `src/main.tsx` (after the `tokens.css` import) so the fonts load on the critical path but still benefit from Vite's asset hashing.
-- [ ] 9.3 Confirm no runtime Google Fonts or CDN fetch — everything self-hosted.
-- [ ] 9.4 Verify fonts are tree-shaken per weight; import only the axes we use.
-- Rule source: `frontend-design` typography guidance (avoid Inter/Roboto defaults, commit to characterful pairing); `bundle-barrel-imports` (avoid pulling full foundry barrels).
-
 ### Task 10. Rewrite design tokens
 
 - [ ] 10.1 In `src/styles/tokens.css`, replace the color palette with:
@@ -121,6 +113,14 @@ Every component rewrite must continue to satisfy the same a11y and state-machine
 - Rule source: workspace steering rule — update existing `README.md` only when public API or architecture changes.
 
 ## Completed Tasks
+
+### Phase B — Task 9. Self-host the new font stack
+
+- [x] 9.1 Add `@fontsource-variable/fraunces`, `@fontsource-variable/inter-tight`, `@fontsource-variable/jetbrains-mono` to dependencies.
+- [x] 9.2 Import the required weight ranges in `src/main.tsx` (after the `tokens.css` import) so the fonts load on the critical path but still benefit from Vite's asset hashing.
+- [x] 9.3 Confirm no runtime Google Fonts or CDN fetch — everything self-hosted.
+- [x] 9.4 Verify fonts are tree-shaken per weight; import only the axes we use. Each package ships a `wght.css` upright-only entry file; only that axis file is imported, so no italic or extra-axis woff2 ships to the browser.
+- Rule source: `frontend-design` typography guidance (avoid Inter/Roboto defaults, commit to characterful pairing); `bundle-barrel-imports` (avoid pulling full foundry barrels).
 
 ### Phase A — Task 8. Enable the React Compiler
 

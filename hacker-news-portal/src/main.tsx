@@ -1,5 +1,25 @@
 import "./styles/tokens.css";
 
+// ---------------------------------------------------------------------------
+// Self-hosted font loading.
+//
+// Each fontsource-variable package ships several axis-specific CSS files.
+// We import only each font's `wght.css` variant, which declares a single
+// `@font-face` for the upright weight axis and is therefore the smallest
+// payload that still gives us the full 100..900 range we style through
+// the tokens. Italic-only axes (`wght-italic.css`) and foundry-specific
+// extras (Fraunces' `opsz.css`, `soft.css`, `wonk.css`) are NOT imported
+// so no woff2 beyond the upright weight axis ships to the browser.
+//
+// Import order matters: these run AFTER `./styles/tokens.css` above so
+// tokens that reference the font families can resolve the rule set, but
+// on the critical path so the first paint already knows the font
+// families exist.
+// ---------------------------------------------------------------------------
+import "@fontsource-variable/fraunces/wght.css";
+import "@fontsource-variable/inter-tight/wght.css";
+import "@fontsource-variable/jetbrains-mono/wght.css";
+
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
