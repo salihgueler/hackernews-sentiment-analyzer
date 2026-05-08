@@ -32,8 +32,12 @@
   font-size: var(--font-size-body);
   line-height: var(--line-tight);
   cursor: pointer;
-  transition: background-color 150ms ease, color 150ms ease,
-              border-color 150ms ease;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    border-color 150ms ease,
+    box-shadow 200ms ease,
+    transform 200ms ease;
 }
 
 .ui-button:disabled,
@@ -55,11 +59,21 @@
   background: var(--color-accent);
   color: var(--color-bg-elev);
   border-color: var(--color-accent);
+  /* Pill shape + soft raised shadow anchors the hero CTA against the
+   * editorial masthead typography without feeling like a rectangle of
+   * paint. Padding tightens the text so the pill reads as a distinct
+   * shape at the end of the masthead row. */
+  border-radius: var(--radius-pill);
+  padding: var(--space-3) var(--space-5);
+  box-shadow: var(--shadow-raised);
+  font-weight: 600;
 }
 
 .ui-button--primary:hover:not(:disabled):not([aria-busy="true"]) {
   background: var(--color-ink);
   border-color: var(--color-ink);
+  box-shadow: var(--shadow-raised-hover);
+  transform: translateY(-1px);
 }
 
 .ui-button--ghost {
