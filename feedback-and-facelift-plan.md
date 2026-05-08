@@ -11,14 +11,6 @@ Go through and implement the tasks below for the project under `hacker-news-port
 
 These are the concrete defects and best-practice misses found in the audit. They are ordered so every later phase builds on a clean base.
 
-### Task 8. Enable the React Compiler
-
-- [ ] 8.1 Add `babel-plugin-react-compiler` as a dev dependency in `hacker-news-portal/package.json`.
-- [ ] 8.2 Wire it into `vite.config.ts` via `@vitejs/plugin-react` options: `react({ babel: { plugins: [["babel-plugin-react-compiler", { target: "19" }]] } })`.
-- [ ] 8.3 Build and verify the bundle size does not regress; confirm no new runtime warnings in the dev server console.
-- [ ] 8.4 Spot-check that existing `useCallback` / `useMemo` calls are still correct (compiler augments, does not replace).
-- Rule source: unlocks `rerender-*` category of rules automatically for every new component authored in Phase B/C.
-
 ---
 
 ## Phase B — Design-system foundation
@@ -129,6 +121,14 @@ Every component rewrite must continue to satisfy the same a11y and state-machine
 - Rule source: workspace steering rule — update existing `README.md` only when public API or architecture changes.
 
 ## Completed Tasks
+
+### Phase A — Task 8. Enable the React Compiler
+
+- [x] 8.1 Add `babel-plugin-react-compiler` as a dev dependency in `hacker-news-portal/package.json`.
+- [x] 8.2 Wire it into `vite.config.ts`. `@vitejs/plugin-react` v6 no longer exposes a top-level `babel` option; the supported path is the exported `reactCompilerPreset({ target: "19" })` helper fed through `@rolldown/plugin-babel` alongside `react()`.
+- [x] 8.3 Build and verify the bundle size does not regress; confirm no new runtime warnings in the dev server console.
+- [x] 8.4 Spot-check that existing `useCallback` / `useMemo` calls are still correct (compiler augments, does not replace).
+- Rule source: unlocks `rerender-*` category of rules automatically for every new component authored in Phase B/C.
 
 ### Phase A — Task 7. Tighten TypeScript, aligned with `strands-agent-typescript`
 
