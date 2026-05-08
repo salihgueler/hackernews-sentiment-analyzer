@@ -23,14 +23,6 @@ No visual components change in this phase. The goal is to land tokens, fonts, an
 
 Every component rewrite must continue to satisfy the same a11y and state-machine contracts already documented in the source files (keep the comment blocks — edit them only where behavior changes).
 
-### Task 15. Report view facelift
-
-- [ ] 15.1 Rework `src/features/reports/ReportView.tsx` into an article layout: 64-ch column, display-serif `<h1>`, mono `<time>` below a hairline rule, optional sentiment `<Chip>` row.
-- [ ] 15.2 Consume the new `initialMetadata` prop from Task 4 so the landing route paints instantly.
-- [ ] 15.3 Replace the inline loading `<p>` with a `<Skeleton>` layout matching the final shape.
-- [ ] 15.4 The "Report could not be loaded" banner uses the new error token palette.
-- [ ] 15.5 Lazy Markdown renderer already in place — no regression here.
-
 ### Task 16. Empty / NotFound / Error facelift
 
 - [ ] 16.1 Redesign `EmptyArchiveView`, `NotFoundView`, and the router `ErrorFallback` with a small inline-SVG illustration (hoisted to module scope per `rendering-hoist-jsx`) and the new type scale.
@@ -54,6 +46,15 @@ Every component rewrite must continue to satisfy the same a11y and state-machine
 - Rule source: workspace steering rule — update existing `README.md` only when public API or architecture changes.
 
 ## Completed Tasks
+
+### Phase C — Task 15. Report view facelift
+
+- [x] 15.1 Rework `src/features/reports/ReportView.tsx` into an article layout: 64-ch column, display-serif `<h1>`, mono `<time>` row below a hairline rule, optional sentiment `<Chip>` row.
+- [x] 15.2 Consume the `initialMetadata` prop from Task 4 so the landing route paints instantly.
+- [x] 15.3 Replace the inline loading `<p>` with a `<Skeleton>` layout matching the final shape (heading row + meta row + four body lines).
+- [x] 15.4 The "Report could not be loaded" banner uses the new error token palette via `.report-view__error`.
+- [x] 15.5 Lazy Markdown renderer already in place — no regression.
+- Note: `ReportMetadata` does not currently carry a sentiment field. `pickSentimentTone` reads a future `metadata.sentiment` narrowly and returns `undefined` today, so the chip wiring is ready without changing the agent.
 
 ### Phase C — Task 14b. Sidebar rewrite
 

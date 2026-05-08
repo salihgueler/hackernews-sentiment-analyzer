@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { CSSProperties, ReactElement } from "react";
+import type { ReactElement } from "react";
 import { useParams } from "react-router-dom";
 
 import { displayTitle } from "../../domain/reportMetadata";
@@ -11,7 +11,12 @@ import {
   listReports,
 } from "../../wireBackend";
 import type { ReportMetadata, ReportPayload } from "../../wireBackend";
+import { Chip } from "../../ui/Chip";
+import type { ChipTone } from "../../ui/Chip";
+import { Skeleton } from "../../ui/Skeleton";
 import { NotFoundView } from "./NotFoundView";
+
+import "./ReportView.css";
 
 // ---------------------------------------------------------------------------
 // ReportView — main-view surface for `/reports/:slug` and, via the landing
@@ -28,9 +33,7 @@ import { NotFoundView } from "./NotFoundView";
 //     fetch only the Markdown body via `getReportBody(slug)` and use
 //     `[initialMetadata]` as the siblings set; `displayTitle` only needs
 //     siblings when the title is empty and collides on `generatedAt`, so a
-//     single-element array is a safe seed for the landing render. This
-//     removes the second `listReports()` round-trip entirely on the
-//     landing path.
+//     single-element array is a safe seed for the landing render.
 //   - Direct-URL path (`/reports/:slug`): no `initialMetadata` is
 //     available, so we fall back to `Promise.all([getReport(slug),
 //     listReports()])` to get the full sibling set for the display-title
@@ -44,10 +47,16 @@ import { NotFoundView } from "./NotFoundView";
 // Error mapping:
 //   - `NOT_FOUND` from `getReport` → render `<NotFoundView slug={slug} />`
 //     (Req 3.4). The Sidebar stays rendered because it is a sibling in
-//     `Layout`; this component is not responsible for it.
+//     `Layout`.
 //   - `DATA_SOURCE_UNAVAILABLE` from either call → render a
-//     `<p role="alert">Report could not be loaded.</p>` banner (Req 1.5). The
-//     Sidebar stays rendered for the same reason.
+//     `<p role="alert">Report could not be loaded.</p>` banner (Req 1.5).
+//
+// Rendering: the article uses a display-serif <h1>, a mono <time> row
+// below a hairline rule, and an optional sentiment `<Chip>` row that
+// only appears when the caller-supplied `ReportMetadata` carries a
+// known `sentiment` value. Today no agent writes that field so the chip
+// row is inert; the wiring is in place for the next time the agent
+// schema grows.
 //
 // Realizes design Property 5 (route resolution).
 // ---------------------------------------------------------------------------
@@ -85,10 +94,6 @@ export function ReportView({
     let cancelled = false;
     setState({ kind: "loading" });
 
-    // Fast path: landing route has already resolved the metadata for this
-    // slug, so we only need the body. Siblings are seeded from the single
-    // provided metadata; `displayTitle` only consults siblings for the
-    // empty-title + colliding-generatedAt branch, which cannot apply here.
     if (initialMetadata !== undefined && initialMetadata.slug === slug) {
       getReportBody(slug).then(
         (body) => {
@@ -134,9 +139,6 @@ export function ReportView({
           setState({ kind: "unavailable" });
           return;
         }
-        // Any other class of error (should not occur for read paths, but we
-        // refuse to crash the main view): degrade to "unavailable" so the
-        // Sidebar stays usable and the Visitor sees a recognizable message.
         setState({ kind: "unavailable" });
       },
     );
@@ -147,7 +149,7 @@ export function ReportView({
   }, [slug, initialMetadata]);
 
   if (state.kind === "loading") {
-    return LOADING_REPORT_PLACEHOLDER;
+    return REPORT_LOADING_PLACEHOLDER;
   }
 
   if (state.kind === "notFound") {
@@ -156,25 +158,33 @@ export function ReportView({
 
   if (state.kind === "unavailable") {
     return (
-      <section style={sectionStyle}>
-        <p role="alert" style={alertStyle}>
+      <article className="report-view">
+        <p role="alert" className="report-view__error">
           Report could not be loaded.
         </p>
-      </section>
+      </article>
     );
   }
 
   const { payload, siblings } = state;
   const { metadata, body } = payload;
   const title = displayTitle(metadata, siblings);
+  const sentimentTone = pickSentimentTone(metadata);
 
   return (
-    <article style={articleStyle}>
-      <header style={headerStyle}>
-        <h2 style={headingStyle}>{title}</h2>
-        <time dateTime={metadata.generatedAt} style={dateStyle}>
-          {metadata.generatedAt}
-        </time>
+    <article className="report-view">
+      <header className="report-view__header">
+        <h1 className="report-view__title">{title}</h1>
+        <div className="report-view__meta">
+          <time dateTime={metadata.generatedAt}>{metadata.generatedAt}</time>
+          <span aria-hidden="true">·</span>
+          <span>{metadata.slug}</span>
+        </div>
+        {sentimentTone !== undefined ? (
+          <div className="report-view__chips">
+            <Chip tone={sentimentTone}>Sentiment: {sentimentTone}</Chip>
+          </div>
+        ) : null}
       </header>
       <MarkdownRenderer>{body}</MarkdownRenderer>
     </article>
@@ -184,55 +194,46 @@ export function ReportView({
 export default ReportView;
 
 // ---------------------------------------------------------------------------
-// Inline styles, token-driven.
+// Sentiment selection. The `ReportMetadata` schema does not currently
+// carry a sentiment field, so this helper treats every entry as
+// sentiment-less and returns `undefined`. Adding a `sentiment` field in
+// a future agent schema lets this helper start surfacing a chip without
+// touching the render tree.
 // ---------------------------------------------------------------------------
 
-const sectionStyle: CSSProperties = {
-  padding: "var(--space-4)",
-};
+const KNOWN_TONES: ReadonlyArray<ChipTone> = [
+  "positive",
+  "negative",
+  "mixed",
+  "neutral",
+];
 
-const articleStyle: CSSProperties = {
-  padding: "var(--space-4)",
-  display: "flex",
-  flexDirection: "column",
-  gap: "var(--space-3)",
-};
-
-const headerStyle: CSSProperties = {
-  display: "flex",
-  flexDirection: "column",
-  gap: "var(--space-1)",
-};
-
-const headingStyle: CSSProperties = {
-  margin: 0,
-  fontSize: "var(--font-size-heading)",
-};
-
-const dateStyle: CSSProperties = {
-  color: "var(--color-text-muted)",
-  fontSize: "var(--font-size-small)",
-};
-
-const placeholderStyle: CSSProperties = {
-  margin: 0,
-  color: "var(--color-text-muted)",
-};
-
-const alertStyle: CSSProperties = {
-  margin: 0,
-  color: "var(--color-text)",
-};
+function pickSentimentTone(metadata: ReportMetadata): ChipTone | undefined {
+  const candidate = (metadata as { sentiment?: unknown }).sentiment;
+  if (typeof candidate !== "string") {
+    return undefined;
+  }
+  return KNOWN_TONES.find((tone) => tone === candidate);
+}
 
 // ---------------------------------------------------------------------------
-// Static JSX hoisted to module scope so the loading branch reuses the same
-// element reference across renders (rendering-hoist-jsx). The alert banner
-// stays inline because its copy is identical but its role is dynamic at
-// the call site and Phase C replaces it with a real skeleton.
+// Hoisted loading placeholder (rendering-hoist-jsx). Shape mirrors the
+// final article: large heading line, meta line, body lines.
 // ---------------------------------------------------------------------------
 
-const LOADING_REPORT_PLACEHOLDER: ReactElement = (
-  <section style={sectionStyle}>
-    <p style={placeholderStyle}>Loading report…</p>
-  </section>
+const REPORT_LOADING_PLACEHOLDER: ReactElement = (
+  <article className="report-view" aria-busy="true">
+    <header className="report-view__header">
+      <Skeleton variant="line" width="70%" height="2.75rem" />
+      <Skeleton variant="line" width="40%" />
+    </header>
+    <div className="report-view__skeletons">
+      <div className="report-view__skeleton-body">
+        <Skeleton variant="line" />
+        <Skeleton variant="line" width="95%" />
+        <Skeleton variant="line" width="88%" />
+        <Skeleton variant="line" width="60%" />
+      </div>
+    </div>
+  </article>
 );

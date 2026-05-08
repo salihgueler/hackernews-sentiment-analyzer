@@ -1,0 +1,73 @@
+/*
+ * ReportView (src/features/reports/ReportView.tsx).
+ *
+ * Article layout: a 64ch column, display-serif <h1>, and a mono <time>
+ * row below a hairline rule. The Markdown body carries its own scoped
+ * typography from markdown/MarkdownRenderer.css.
+ */
+
+.report-view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  max-width: 64ch;
+}
+
+.report-view__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-bottom: var(--space-4);
+  border-bottom: var(--rule-hairline) solid var(--color-rule);
+}
+
+.report-view__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--font-size-display-1);
+  line-height: var(--line-tight);
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+}
+
+.report-view__meta {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-small);
+  color: var(--color-ink-muted);
+}
+
+.report-view__meta time {
+  font-variant-numeric: tabular-nums;
+}
+
+.report-view__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.report-view__error {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--color-error-bg);
+  color: var(--color-error);
+  border: var(--rule-hairline) solid var(--color-error);
+  margin: 0;
+  font-size: var(--font-size-body);
+}
+
+.report-view__skeletons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.report-view__skeleton-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
