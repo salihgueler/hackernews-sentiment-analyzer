@@ -1,0 +1,97 @@
+/*
+ * Global design tokens and base styles for the Hacker News Portal.
+ *
+ * Color choices meet WCAG 2.1 Level AA contrast requirements against the
+ * white background (--color-bg):
+ *   - body text (#111827)       contrast ratio > 15:1 (AA/AAA)
+ *   - muted text (#4b5563)      contrast ratio ~ 7.6:1 (AA/AAA)
+ *   - border (#d1d5db)          non-text UI, used for separation only
+ *   - focus outline (#2563eb)   contrast ratio ~ 4.5:1 vs white (AA for UI)
+ *   - accent (#2563eb)          used for interactive text/affordances
+ *   - error text (#991b1b)      contrast ratio > 7:1 on --color-error-bg
+ *
+ * Requirements: 16.4 (WCAG AA contrast), 16.5 (reduced motion preserves
+ * role="status" visibility).
+ */
+
+:root {
+  /* Color tokens */
+  --color-bg: #ffffff;
+  --color-text: #111827;
+  --color-text-muted: #4b5563;
+  --color-border: #d1d5db;
+  --color-focus: #2563eb;
+  --color-accent: #2563eb;
+  --color-error: #991b1b;
+  --color-error-bg: #fef2f2;
+
+  /* Type scale (rem-based) */
+  --font-size-body: 1rem;          /* 16px */
+  --font-size-small: 0.875rem;     /* 14px */
+  --font-size-heading-1: 2rem;     /* 32px */
+  --font-size-heading-2: 1.5rem;   /* 24px */
+  --font-size-heading-3: 1.25rem;  /* 20px */
+
+  /* Spacing scale */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-7: 1.75rem;
+  --space-8: 2rem;
+
+  /* Focus ring shorthand. Used by nav links and primary actions. */
+  --focus-ring: 2px solid var(--color-focus);
+}
+
+/* Minimal global resets */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    "Noto Sans",
+    sans-serif,
+    "Apple Color Emoji",
+    "Segoe UI Emoji";
+  color: var(--color-text);
+  background: var(--color-bg);
+  font-size: var(--font-size-body);
+  line-height: 1.5;
+}
+
+/* Keyboard focus baseline */
+:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/*
+ * Respect the user's OS-level reduced-motion preference. Decorative
+ * transitions and animations are suppressed, but role="status" elements
+ * remain fully visible (Req 16.5) because they are structural announcements
+ * and are not hidden or dimmed by this rule.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  /* Keep functional status indicators visible (role="status" elements are structural, not animated) */
+}
