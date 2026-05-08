@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import type { CSSProperties, ReactElement } from "react";
+import { useCallback, useEffect, useState } from "react";
+import type { ReactElement } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import { sortReportsForDisplay } from "../domain/reportMetadata";
@@ -9,7 +9,12 @@ import { ReportView } from "../features/reports/ReportView";
 import type { ReportMetadata } from "../wireBackend/types";
 import { BackendError } from "../wireBackend/types";
 import { listReports } from "../wireBackend/staticBackend";
+import { Button } from "../ui/Button";
+import { SectionLabel } from "../ui/SectionLabel";
+import { Skeleton } from "../ui/Skeleton";
 import { Layout } from "./layout/Layout";
+
+import "../features/reports/EmptyState.css";
 
 // ---------------------------------------------------------------------------
 // routes.tsx — React Router v6 configuration for the Portal.
@@ -72,7 +77,7 @@ export default AppRoutes;
 //      already-resolved metadata so it can skip its own `listReports()`
 //      round-trip on the landing path).
 //   4. Render `EmptyArchiveView` when the index has zero entries (Req 1.4).
-//   5. Render a main-view `<p role="alert">Archive unavailable.</p>` on a
+//   5. Render a main-view `role="alert"` banner on a
 //      `DATA_SOURCE_UNAVAILABLE` rejection. The Sidebar is a sibling in
 //      Layout; this branch is only responsible for the main-view message
 //      (Req 9.4).
@@ -139,13 +144,7 @@ function LandingRoute(): ReactElement {
   }
 
   if (state.kind === "unavailable") {
-    return (
-      <section style={sectionStyle}>
-        <p role="alert" style={alertStyle}>
-          Archive unavailable.
-        </p>
-      </section>
-    );
+    return <ArchiveUnavailable />;
   }
 
   return (
@@ -163,68 +162,77 @@ function LandingRoute(): ReactElement {
 // views themselves.
 // ---------------------------------------------------------------------------
 
+const ERROR_ILLUSTRATION: ReactElement = (
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 96 96"
+    xmlns="http://www.w3.org/2000/svg"
+    className="empty-state__illustration"
+  >
+    <circle cx="48" cy="48" r="42" fill="var(--color-accent-soft)" />
+    <path
+      d="M48 28v28M48 64v4"
+      stroke="currentColor"
+      strokeWidth="4"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
 function ErrorFallback(): ReactElement {
-  const handleRetry = (): void => {
-    // A hard reload is the simplest way to reset the Portal's in-memory
-    // caches and retry every in-flight fetch without building route-specific
-    // recovery logic here.
+  const handleRetry = useCallback((): void => {
     if (typeof window !== "undefined") {
       window.location.reload();
     }
-  };
+  }, []);
 
   return (
-    <section style={sectionStyle}>
-      <p role="alert" style={alertStyle}>
-        Something went wrong.
+    <section className="empty-state" role="alert">
+      {ERROR_ILLUSTRATION}
+      <SectionLabel>Portal</SectionLabel>
+      <h2 className="empty-state__title">Something went wrong</h2>
+      <p className="empty-state__body">
+        We hit an unexpected error while loading this view. A reload usually
+        clears any in-flight state.
       </p>
-      <button type="button" onClick={handleRetry} style={retryButtonStyle}>
-        Retry
-      </button>
+      <div className="empty-state__actions">
+        <Button variant="primary" onClick={handleRetry}>
+          Retry
+        </Button>
+      </div>
     </section>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Inline styles.
+// ArchiveUnavailable — main-view surface when `listReports()` rejects on
+// the landing route. Uses the same empty-state chrome as the other
+// fallback views for consistency.
 // ---------------------------------------------------------------------------
 
-const sectionStyle: CSSProperties = {
-  padding: "var(--space-4)",
-  display: "flex",
-  flexDirection: "column",
-  gap: "var(--space-2)",
-};
-
-const placeholderStyle: CSSProperties = {
-  margin: 0,
-  color: "var(--color-text-muted)",
-};
-
-const alertStyle: CSSProperties = {
-  margin: 0,
-  color: "var(--color-text)",
-};
-
-const retryButtonStyle: CSSProperties = {
-  alignSelf: "flex-start",
-  padding: "var(--space-1) var(--space-3)",
-  border: "1px solid var(--color-border)",
-  borderRadius: "4px",
-  background: "transparent",
-  color: "inherit",
-  cursor: "pointer",
-  font: "inherit",
-};
+function ArchiveUnavailable(): ReactElement {
+  return (
+    <section className="empty-state" role="alert">
+      <SectionLabel>Archive</SectionLabel>
+      <h2 className="empty-state__title">Archive unavailable</h2>
+      <p className="empty-state__body">
+        We could not reach the report index. Refresh the page or try again
+        shortly.
+      </p>
+    </section>
+  );
+}
 
 // ---------------------------------------------------------------------------
-// Static JSX hoisted to module scope so the landing loading branch reuses
-// the same element reference across renders (rendering-hoist-jsx). Alert
-// banners remain inline because their copy is dynamic.
+// Static JSX hoisted to module scope (rendering-hoist-jsx). Alert banners
+// stay dynamic because their copy or role is contextual.
 // ---------------------------------------------------------------------------
 
 const LOADING_ARCHIVE_PLACEHOLDER: ReactElement = (
-  <section style={sectionStyle}>
-    <p style={placeholderStyle}>Loading archive…</p>
+  <section className="empty-state" aria-busy="true">
+    <Skeleton variant="line" width="60%" height="2rem" />
+    <Skeleton variant="line" width="40%" />
+    <Skeleton variant="line" />
+    <Skeleton variant="line" width="80%" />
   </section>
 );

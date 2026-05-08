@@ -1,0 +1,39 @@
+/*
+ * Shared surface for empty / not-found / error fallback views
+ * (src/features/reports/EmptyArchiveView.tsx, NotFoundView.tsx, and the
+ * router ErrorFallback in src/app/routes.tsx).
+ */
+
+.empty-state {
+  max-width: 52ch;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+
+.empty-state__illustration {
+  width: 6rem;
+  height: 6rem;
+  color: var(--color-accent);
+}
+
+.empty-state__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--font-size-heading-1);
+  line-height: var(--line-tight);
+  color: var(--color-ink);
+}
+
+.empty-state__body {
+  margin: 0;
+  color: var(--color-ink-muted);
+}
+
+.empty-state__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}

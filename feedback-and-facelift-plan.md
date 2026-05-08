@@ -23,12 +23,6 @@ No visual components change in this phase. The goal is to land tokens, fonts, an
 
 Every component rewrite must continue to satisfy the same a11y and state-machine contracts already documented in the source files (keep the comment blocks — edit them only where behavior changes).
 
-### Task 16. Empty / NotFound / Error facelift
-
-- [ ] 16.1 Redesign `EmptyArchiveView`, `NotFoundView`, and the router `ErrorFallback` with a small inline-SVG illustration (hoisted to module scope per `rendering-hoist-jsx`) and the new type scale.
-- [ ] 16.2 Each view gets a single primary action (`Generate` / `Back to latest` / `Retry`) rendered via `Button` primitive.
-- [ ] 16.3 Keep `role="alert"` on error copy and `<h2>` landmark.
-
 ### Task 17. Motion and micro-interactions
 
 - [ ] 17.1 Add a CSS-only staggered reveal for the masthead → first sidebar section → article header on the initial landing paint, using `animation-delay` on three elements only.
@@ -46,6 +40,12 @@ Every component rewrite must continue to satisfy the same a11y and state-machine
 - Rule source: workspace steering rule — update existing `README.md` only when public API or architecture changes.
 
 ## Completed Tasks
+
+### Phase C — Task 16. Empty / NotFound / ErrorFallback facelift
+
+- [x] 16.1 Redesign `EmptyArchiveView`, `NotFoundView`, and the router `ErrorFallback` with small hoisted inline-SVG illustrations and the new type scale, all sharing a `EmptyState.css` surface.
+- [x] 16.2 Each non-empty action view gets a single primary action rendered via the `Button` primitive — Back to latest (NotFound), Retry (ErrorFallback). EmptyArchiveView points the visitor at the masthead Generate button instead of duplicating it.
+- [x] 16.3 Keep `role="alert"` on error copy. `<h2>` landmark preserved via `.empty-state__title`.
 
 ### Phase C — Task 15. Report view facelift
 
