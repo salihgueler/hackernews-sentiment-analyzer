@@ -65,6 +65,12 @@ Every component rewrite must continue to satisfy the same a11y and state-machine
 
 ## Completed Tasks
 
+### Phase C — Task 14a. Sidebar domain helpers — `groupByRecency` and `preloadReport`
+
+- [x] 14.1a Add a pure `groupByRecency(metas, now)` helper to `src/domain/reportMetadata.ts` returning `{ today, thisWeek, earlier }`. Boundaries are UTC-aligned (same-UTC-day for today, trailing 7-day window for thisWeek). `now` is injected so the helper stays deterministic.
+- [x] 14.4a Add a fire-and-forget `preloadReport(slug)` helper to `src/wireBackend/staticBackend.ts`, re-exported from the wireBackend barrel. Warms the same LRU body cache used by `getReport` / `getReportBody`, swallows every rejection, and short-circuits when the body is already cached. The `priority: 'low'` request hint is intentionally omitted because the project's TypeScript DOM lib does not yet type it; consumers get the cache warm regardless.
+- Rule sources: `bundle-preload` (intent-based preload), `async-parallel` (preload concurrent with navigation).
+
 ### Phase C — Task 13b. Masthead layout
 
 - [x] 13.1 Reshape `src/app/layout/Layout.tsx` into a slim masthead: small-caps eyebrow via `SectionLabel`, display-serif site title, Generate button anchored on the trailing edge.

@@ -44,6 +44,7 @@ export {
   getReportBody,
   invalidateStaticCaches,
   listReports,
+  preloadReport,
 } from "./staticBackend";
 
 // Runtime values from `./generationClient`.

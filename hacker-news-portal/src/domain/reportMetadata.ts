@@ -90,3 +90,76 @@ export function displayTitle(
   }
   return `HN Sentiment — ${meta.generatedAt}`;
 }
+
+// ---------------------------------------------------------------------------
+// Recency grouping
+// ---------------------------------------------------------------------------
+
+/**
+ * Three-bucket grouping used by the Sidebar facelift: entries generated
+ * today, within the trailing week, and everything older. Each bucket is a
+ * frozen, display-sorted array so callers can render without re-sorting.
+ */
+export interface GroupedReports {
+  readonly today: ReadonlyArray<ReportMetadata>;
+  readonly thisWeek: ReadonlyArray<ReportMetadata>;
+  readonly earlier: ReadonlyArray<ReportMetadata>;
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+const WEEK_MS = 7 * DAY_MS;
+
+/**
+ * Partition `metas` into `today / thisWeek / earlier` buckets relative to
+ * `now`.
+ *
+ * The `now` argument is injected so the helper stays a pure function
+ * (deterministic and safe to unit-test). Callers in the Sidebar pass
+ * `Date.now()` to obtain the current wall-clock grouping.
+ *
+ * Bucket boundaries (UTC):
+ *   - `today`    : entries generated on the same UTC calendar day as `now`.
+ *   - `thisWeek` : entries generated in the trailing 7-day window that
+ *                  are NOT already in `today`.
+ *   - `earlier`  : everything else, including entries with an unparseable
+ *                  or absent `generatedAt`.
+ *
+ * Each bucket is internally sorted reverse-chronologically via
+ * `sortReportsForDisplay`, so the first entry is always the most recent
+ * in its group.
+ */
+export function groupByRecency(
+  metas: ReadonlyArray<ReportMetadata>,
+  now: number,
+): GroupedReports {
+  const sorted = sortReportsForDisplay(metas);
+
+  const nowDate = new Date(now);
+  const todayStart = Date.UTC(
+    nowDate.getUTCFullYear(),
+    nowDate.getUTCMonth(),
+    nowDate.getUTCDate(),
+  );
+  const weekAgo = now - WEEK_MS;
+
+  const today: ReportMetadata[] = [];
+  const thisWeek: ReportMetadata[] = [];
+  const earlier: ReportMetadata[] = [];
+
+  for (const entry of sorted) {
+    const parsed = Date.parse(entry.generatedAt);
+    if (Number.isNaN(parsed)) {
+      earlier.push(entry);
+      continue;
+    }
+    if (parsed >= todayStart) {
+      today.push(entry);
+    } else if (parsed >= weekAgo) {
+      thisWeek.push(entry);
+    } else {
+      earlier.push(entry);
+    }
+  }
+
+  return { today, thisWeek, earlier };
+}

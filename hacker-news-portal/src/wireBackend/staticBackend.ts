@@ -239,6 +239,38 @@ export async function getReportBody(slug: string): Promise<string> {
   return body;
 }
 
+/**
+ * Warm the body cache for `slug` without awaiting or throwing.
+ *
+ * Called from the Sidebar on `onMouseEnter` and `onFocus` so the
+ * Markdown body has already been fetched and the LRU entry is populated
+ * by the time the Visitor actually navigates.
+ *
+ * Contract:
+ * - Returns immediately (fire-and-forget). Every rejection is swallowed
+ *   so a preload failure never bubbles out; the main navigation path
+ *   still surfaces `DATA_SOURCE_UNAVAILABLE` via `getReport(slug)` the
+ *   usual way.
+ * - Skips the network call entirely when the body is already cached.
+ * - Shares the same LRU cache as `getReport` / `getReportBody` via
+ *   `touchBody`, so a successful preload satisfies a subsequent request
+ *   without a second round-trip.
+ */
+export function preloadReport(slug: string): void {
+  if (readCachedBody(slug) !== undefined) {
+    return;
+  }
+  void fetchBody(slug).then(
+    (body) => {
+      touchBody(slug, body);
+    },
+    () => {
+      // Intentionally swallow: preload is a hint, not a contract. The
+      // eventual getReport(slug) call will surface any real error.
+    },
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Invalidation
 // ---------------------------------------------------------------------------
