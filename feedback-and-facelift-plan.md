@@ -23,14 +23,15 @@ No visual components change in this phase. The goal is to land tokens, fonts, an
 
 Every component rewrite must continue to satisfy the same a11y and state-machine contracts already documented in the source files (keep the comment blocks — edit them only where behavior changes).
 
-### Task 18. Documentation
-
-- [ ] 18.1 Update `hacker-news-portal/README.md` only (do not create new docs) with: the new font/token story, the React Compiler note, and the new tsconfig flags.
-- [ ] 18.2 Update `hacker-news-portal/README.md` sections describing `npm run dev / build / preview` if any script changes.
-- [ ] 18.3 No other `.md` files created.
-- Rule source: workspace steering rule — update existing `README.md` only when public API or architecture changes.
+---
 
 ## Completed Tasks
+
+### Phase C — Task 18. Documentation
+
+- [x] 18.1 Update `hacker-news-portal/README.md` only with sections on the new font/token story, the React Compiler path through `reactCompilerPreset`, and the enabled tsconfig flags.
+- [x] 18.2 `npm run dev / build / preview / prebuild-reports` scripts are unchanged; the existing script table already documents them accurately.
+- [x] 18.3 No other `.md` files created.
 
 ### Phase C — Task 17. Motion and micro-interactions
 
