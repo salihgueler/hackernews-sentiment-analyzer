@@ -34,7 +34,7 @@ const CLAUDE_HAIKU_4_5_MODEL_ID =
 /**
  * System prompt that pins the agent to a single JSON object response
  * whose `slug` encodes the full slug policy (lowercase ASCII letters and
- * digits, single-hyphen separators, 1..48 characters, no leading, trailing,
+ * digits, single-hyphen separators, 1..64 characters, no leading, trailing,
  * or consecutive hyphens).
  */
 const SYSTEM_PROMPT = `You propose a concise display title and a URL-safe slug for a Hacker News sentiment report.
@@ -44,20 +44,28 @@ Input: the full Markdown body of the report.
 Output: RETURN ONLY a single JSON object, with no prose before or after, no markdown code fences, and no comments. The object MUST have exactly these two fields:
 
   {
-    "title": string,  // a human-readable title, 1..80 characters
+    "title": string,  // a human-readable title, 1..100 characters
     "slug":  string   // a URL-safe slug
   }
 
 Slug rules (ALL are mandatory):
-  - 1 to 48 characters, inclusive.
+  - 1 to 64 characters, inclusive.
   - Only lowercase ASCII letters (a-z), digits (0-9), and the hyphen separator '-'.
   - No leading hyphen, no trailing hyphen, no consecutive hyphens.
   - Must match the regular expression: ^[a-z0-9]+(?:-[a-z0-9]+)*$
 
 Title rules:
-  - Plain text, 1 to 80 characters. No surrounding quotes or markdown formatting.
+  - Plain text, 1 to 100 characters. No surrounding quotes or markdown formatting.
 
 Your entire response MUST be exactly one JSON object matching the shape above and MUST parse with JSON.parse.`;
+
+/** Maximum allowed title length, shared by the prompt, the Zod schema, and
+ * the one-shot retry truncation step. */
+const TITLE_MAX_LENGTH = 100;
+
+/** Maximum allowed slug length, shared by the prompt, the Zod schema, and
+ * the one-shot retry truncation step. */
+const SLUG_MAX_LENGTH = 64;
 
 /**
  * Zod schema for the Title Agent's parsed JSON output.
@@ -67,11 +75,11 @@ Your entire response MUST be exactly one JSON object matching the shape above an
  * contract with the agent locally inspectable.
  */
 export const TitleAgentOutputSchema = z.object({
-  title: z.string().min(1).max(80),
+  title: z.string().min(1).max(TITLE_MAX_LENGTH),
   slug: z
     .string()
     .min(1)
-    .max(48)
+    .max(SLUG_MAX_LENGTH)
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
 });
 
@@ -128,25 +136,165 @@ function extractRawText(result: AgentResult): string {
 }
 
 /**
+ * Defensive fence-stripper. The system prompt instructs the model to
+ * return raw JSON with no code fences, but Claude occasionally wraps the
+ * object in a ```` ```json … ``` ```` (or plain ```` ``` … ``` ````)
+ * block anyway. Strip exactly one outer fenced section when present so
+ * `JSON.parse` sees the object directly; otherwise return the input
+ * unchanged. Any other malformed payload still fails at `JSON.parse`,
+ * which the GenerationRunner surfaces as a `title`-stage failure.
+ */
+function stripJsonCodeFence(raw: string): string {
+  const trimmed = raw.trim();
+  if (!trimmed.startsWith("```")) {
+    return trimmed;
+  }
+  // Match: opening ``` with optional language tag, a newline, the body
+  // (non-greedy), an optional trailing newline, and the closing ```.
+  const fenced = /^```[a-zA-Z0-9_-]*\n([\s\S]*?)\n?```$/.exec(trimmed);
+  if (fenced === null) {
+    return trimmed;
+  }
+  return (fenced[1] ?? "").trim();
+}
+
+/**
  * Invoke the Title Agent for the given report body and return a validated
  * `{ title, slug }` pair.
  *
+ * A single outer ```` ```json … ``` ```` (or plain triple-backtick) code
+ * fence is tolerated before `JSON.parse`; any other deviation from the
+ * pinned contract still fails.
+ *
+ * Retry policy:
+ *  - If Zod's only failure is a `too_big` on either `title` or `slug`
+ *    (the model ignored the corresponding cap), the agent is re-invoked
+ *    exactly once with a targeted follow-up instructing it to shorten
+ *    just that field while preserving the other. For `slug`, the
+ *    follow-up re-states the slug regex so the retry does not produce a
+ *    malformed slug.
+ *  - Any other Zod failure (wrong type, missing fields, multi-issue
+ *    errors, or a slug regex violation on the first attempt) surfaces
+ *    immediately without retry.
+ *  - A second validation failure on the retry surfaces as a normal Zod
+ *    failure handled by the GenerationRunner's `title`-stage path.
+ *
  * Throws:
  *  - `SyntaxError` (from `JSON.parse`) when the agent's raw output is not
- *    valid JSON.
+ *    valid JSON (after at-most-one fence strip).
  *  - `z.ZodError` when the parsed JSON does not satisfy
- *    `TitleAgentOutputSchema`.
+ *    `TitleAgentOutputSchema` (including any second-try failure).
  *  - Any error surfaced by the Strands SDK / Bedrock call.
- *
- * The caller (`GenerationRunner`) maps every failure from this function to
- * a `titleValidation` stage failure per Requirement 11.5.
  */
 export async function invokeTitleAgent(
   body: string,
 ): Promise<TitleAgentOutput> {
   const agent = getAgent();
-  const result = await agent.invoke(body);
-  const raw = extractRawText(result);
-  const parsed: unknown = JSON.parse(raw);
-  return TitleAgentOutputSchema.parse(parsed);
+  const firstRaw = stripJsonCodeFence(extractRawText(await agent.invoke(body)));
+  const firstParsed: unknown = JSON.parse(firstRaw);
+  const firstResult = TitleAgentOutputSchema.safeParse(firstParsed);
+  if (firstResult.success) {
+    return firstResult.data;
+  }
+
+  const retryField = findRetryableTooBigField(firstResult.error, firstParsed);
+  if (retryField === null) {
+    throw firstResult.error;
+  }
+
+  // Narrowed safely by `findRetryableTooBigField`: `firstParsed` is an
+  // object with string values at both `title` and `slug`; exactly one of
+  // them was rejected as too big, and the other either passed or was not
+  // evaluated by Zod because the failure short-circuited the check.
+  const candidate = firstParsed as {
+    readonly title: string;
+    readonly slug: string;
+  };
+  const followUp = buildRetryPrompt(retryField, candidate);
+  const retryRaw = stripJsonCodeFence(
+    extractRawText(await agent.invoke(followUp)),
+  );
+  const retryParsed: unknown = JSON.parse(retryRaw);
+  return TitleAgentOutputSchema.parse(retryParsed);
+}
+
+type RetryField = "title" | "slug";
+
+/**
+ * When the sole Zod failure is `too_big` on `title` or `slug`, return
+ * that field name so `invokeTitleAgent` can ask for a shortened value.
+ * All other failure shapes return `null` and are not retried.
+ *
+ * Also sanity-checks that the parsed payload actually has a string
+ * value at the rejected field (otherwise there is nothing to quote back
+ * on the retry prompt).
+ */
+function findRetryableTooBigField(
+  error: z.ZodError,
+  parsed: unknown,
+): RetryField | null {
+  if (error.issues.length !== 1) {
+    return null;
+  }
+  const [issue] = error.issues;
+  if (issue === undefined || issue.code !== "too_big") {
+    return null;
+  }
+  if (issue.path.length !== 1) {
+    return null;
+  }
+  const field = issue.path[0];
+  if (field !== "title" && field !== "slug") {
+    return null;
+  }
+  if (typeof parsed !== "object" || parsed === null) {
+    return null;
+  }
+  const maybeValue = (parsed as Record<string, unknown>)[field];
+  const max = field === "title" ? TITLE_MAX_LENGTH : SLUG_MAX_LENGTH;
+  return typeof maybeValue === "string" && maybeValue.length > max
+    ? field
+    : null;
+}
+
+/**
+ * Build the follow-up user prompt used by the single retry. The branch
+ * for `slug` restates the slug regex so the retry does not produce a
+ * malformed value while shortening. Both branches echo the original
+ * counterpart field verbatim (via JSON.stringify) so the retry preserves
+ * the other field unchanged.
+ */
+function buildRetryPrompt(
+  field: RetryField,
+  original: { readonly title: string; readonly slug: string },
+): string {
+  if (field === "title") {
+    const slugLiteral = JSON.stringify(original.slug);
+    return [
+      `Your previous response returned a title of ${original.title.length} characters, which exceeds the ${TITLE_MAX_LENGTH}-character maximum.`,
+      "",
+      `Re-emit the SAME JSON object, with the same slug (${slugLiteral}), but shorten the title so it is at most ${TITLE_MAX_LENGTH} characters. Preserve the meaning; do not add ellipses.`,
+      "",
+      "Return ONLY the corrected JSON object, with no prose, no markdown code fences, and no comments.",
+      "",
+      "Original title (for reference):",
+      JSON.stringify(original.title),
+    ].join("\n");
+  }
+  const titleLiteral = JSON.stringify(original.title);
+  return [
+    `Your previous response returned a slug of ${original.slug.length} characters, which exceeds the ${SLUG_MAX_LENGTH}-character maximum.`,
+    "",
+    `Re-emit the SAME JSON object, with the same title (${titleLiteral}), but shorten the slug so it is at most ${SLUG_MAX_LENGTH} characters.`,
+    "",
+    "Slug rules (ALL still apply):",
+    "  - Only lowercase ASCII letters (a-z), digits (0-9), and single hyphens.",
+    "  - No leading hyphen, no trailing hyphen, no consecutive hyphens.",
+    "  - Must match ^[a-z0-9]+(?:-[a-z0-9]+)*$",
+    "",
+    "Return ONLY the corrected JSON object, with no prose, no markdown code fences, and no comments.",
+    "",
+    "Original slug (for reference):",
+    JSON.stringify(original.slug),
+  ].join("\n");
 }

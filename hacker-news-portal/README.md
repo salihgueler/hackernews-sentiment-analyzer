@@ -9,6 +9,7 @@ Reports are authored as Markdown files with YAML front-matter in `../strands-age
 - Node.js 20+
 - `npm install` from inside this folder
 - The sibling `../strands-agent-typescript/reports/` folder must exist. It may be empty; the Portal will render an empty-archive state.
+- To use the "Generate Report" button in dev or preview, the sibling agent must be built: `cd ../strands-agent-typescript && npm install && npm run build`. The `/__api/generate` middleware dynamically imports `../strands-agent-typescript/dist/agent.js`; if that file is missing the sentiment stage fails with a message telling you to run the build.
 
 ## npm scripts
 

@@ -6,3 +6,4 @@ reports/
 .env.local
 .DS_Store
 .vscode/
+.playwright-mcp/

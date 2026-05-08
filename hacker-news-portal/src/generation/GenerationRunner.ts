@@ -61,14 +61,22 @@ const SENTIMENT_PROMPT =
 
 /**
  * Relative module specifier for the sibling Sentiment Agent. Resolved at
- * runtime by Node/Vite against either the sibling's `src/agent.ts` (dev,
- * via tsx) or `dist/agent.js` (built). The specifier is stored as a
- * variable so TypeScript does not attempt to statically resolve it into
- * the sibling project at compile time (the sibling project is not part of
- * this tsconfig's include list).
+ * runtime by Node against the sibling's compiled output
+ * (`strands-agent-typescript/dist/agent.js`). The specifier targets the
+ * built JS, not the `.ts` source, because the Vite dev server executes
+ * this module under plain Node ESM — `import()` cannot load TypeScript
+ * directly. The operator must therefore run `npm run build` inside
+ * `strands-agent-typescript/` before the `/__api/generate` endpoint can
+ * succeed; the sentiment stage surfaces a clear failure message if the
+ * build output is missing.
+ *
+ * The specifier is stored as a variable (rather than a literal `import`)
+ * so TypeScript does not attempt to statically resolve it into the
+ * sibling project at compile time — the sibling is not part of this
+ * tsconfig's include list (Req 14.3, read-only).
  */
 const SIBLING_SENTIMENT_AGENT_MODULE_PATH =
-  "../../../strands-agent-typescript/src/agent.js";
+  "../../../strands-agent-typescript/dist/agent.js";
 
 /** Absolute path of this source file, used for path resolution. */
 const THIS_FILE = fileURLToPath(import.meta.url);
@@ -172,9 +180,25 @@ async function readExistingSlugs(): Promise<ReadonlySet<string>> {
 
 /** Dynamically import the sibling Sentiment Agent module (see path const). */
 async function loadSentimentAgentModule(): Promise<SentimentAgentModule> {
-  const imported = (await import(
-    SIBLING_SENTIMENT_AGENT_MODULE_PATH
-  )) as SentimentAgentModule;
+  let imported: SentimentAgentModule;
+  try {
+    imported = (await import(
+      SIBLING_SENTIMENT_AGENT_MODULE_PATH
+    )) as SentimentAgentModule;
+  } catch (cause) {
+    // Node raises `ERR_MODULE_NOT_FOUND` when the sibling has not been
+    // built yet. Translate that into an operator-actionable message; any
+    // other import-time failure re-throws as-is so its message reaches
+    // the structured failure record unchanged.
+    if (hasErrorCode(cause) && cause.code === "ERR_MODULE_NOT_FOUND") {
+      throw new Error(
+        "Sibling sentiment agent build output not found at " +
+          "strands-agent-typescript/dist/agent.js. Run `npm run build` " +
+          "inside strands-agent-typescript/ before invoking /__api/generate.",
+      );
+    }
+    throw cause;
+  }
   if (typeof imported.createHackerNewsSentimentAgent !== "function") {
     throw new Error(
       "Sibling sentiment agent module is missing the " +
