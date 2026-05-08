@@ -13,9 +13,13 @@ import { listReports } from "../../wireBackend/staticBackend";
 // Renders <nav aria-label="Report archive"> containing one <ul> with one <li>
 // per ReportMetadata. Each entry is a React Router <NavLink> to
 // `/reports/{slug}`; NavLink's built-in behavior sets `aria-current="page"`
-// on the active anchor (Req 3.5, 16.3), native <a> semantics make entries
-// keyboard focusable and Enter/Space activatable (Req 3.1, 3.2, 16.2), and
-// React Router's history preserves browser back/forward (Req 3.6).
+// on the active anchor (Req 3.5, 16.3), and toggles a `sidebar-link active`
+// className that the global `.sidebar-link.active` rule in `styles/tokens.css`
+// renders with an inline-start accent + bolder weight so the active state
+// is visually distinct from mere color (WCAG 1.4.1). Native <a> semantics
+// make entries keyboard focusable and Enter/Space activatable (Req 3.1,
+// 3.2, 16.2), and React Router's history preserves browser back/forward
+// (Req 3.6).
 //
 // Labels are produced by `displayTitle(entry, entries)` where `entries` is
 // the full array, so the four-branch fallback and its disambiguation read
@@ -126,8 +130,9 @@ function SidebarBody({ state, onRetry }: SidebarBodyProps): ReactElement {
         <li key={entry.id} style={listItemStyle}>
           <NavLink
             to={`/reports/${entry.slug}`}
-            style={navLinkStyle}
-            className={({ isActive }) => (isActive ? "active" : undefined)}
+            className={({ isActive }) =>
+              isActive ? "sidebar-link active" : "sidebar-link"
+            }
           >
             <span style={titleStyle}>{displayTitle(entry, state.entries)}</span>
             <span style={dateStyle}>{entry.generatedAt.slice(0, 10)}</span>
@@ -183,16 +188,6 @@ const listStyle: CSSProperties = {
 
 const listItemStyle: CSSProperties = {
   margin: 0,
-};
-
-const navLinkStyle: CSSProperties = {
-  display: "flex",
-  flexDirection: "column",
-  gap: "var(--space-1)",
-  padding: "var(--space-2) var(--space-3)",
-  borderRadius: "4px",
-  textDecoration: "none",
-  color: "var(--color-text)",
 };
 
 const titleStyle: CSSProperties = {

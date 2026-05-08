@@ -87,6 +87,34 @@ body {
 }
 
 /*
+ * Sidebar navigation link.
+ *
+ * `.sidebar-link` is applied to every Sidebar NavLink; `.sidebar-link.active`
+ * is added by React Router's NavLink when the route matches. A 2px accent
+ * rule on the inline-start edge plus a bolder weight signals the active
+ * state, satisfying WCAG 1.4.1 (do not rely on color alone).
+ *
+ * Focus ring is inherited from the global :focus-visible rule above and
+ * remains visually distinct from the active state (outline + offset vs.
+ * inline-start accent + weight).
+ */
+.sidebar-link {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border-radius: 4px;
+  text-decoration: none;
+  color: var(--color-text);
+  border-inline-start: 2px solid transparent;
+}
+
+.sidebar-link.active {
+  border-inline-start-color: var(--color-accent);
+  font-weight: 600;
+}
+
+/*
  * Respect the user's OS-level reduced-motion preference. Decorative
  * transitions and animations are suppressed, but role="status" elements
  * remain fully visible (Req 16.5) because they are structural announcements
