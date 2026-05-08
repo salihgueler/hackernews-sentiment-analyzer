@@ -23,16 +23,6 @@ No visual components change in this phase. The goal is to land tokens, fonts, an
 
 Every component rewrite must continue to satisfy the same a11y and state-machine contracts already documented in the source files (keep the comment blocks — edit them only where behavior changes).
 
-### Task 14. Sidebar facelift
-
-- [ ] 14.1 Rebuild `src/app/layout/Sidebar.tsx` to group entries by `Today / This week / Earlier` using `sortReportsForDisplay` + a pure `groupByRecency` helper added to `src/domain/reportMetadata.ts`.
-- [ ] 14.2 Each entry shows title (body font) + date/slug (mono font, `--font-size-micro`).
-- [ ] 14.3 Active entry uses the `.sidebar-link.active` rule from Task 2, plus a 2px accent left-rule.
-- [ ] 14.4 Add hover/focus preload: on `onMouseEnter` / `onFocus`, call a new `preloadReport(slug)` helper exported from `src/wireBackend/staticBackend.ts` that warms the body cache via `fetch(..., { priority: 'low' })` without awaiting.
-- [ ] 14.5 Replace the text loading state with `<Skeleton>` rows.
-- [ ] 14.6 Keep the error-branch Retry button and `aria-label="Report archive"` on the nav.
-- Rule sources: `bundle-preload` (intent-based preload), `rerender-no-inline-components` (dedicated group component).
-
 ### Task 15. Report view facelift
 
 - [ ] 15.1 Rework `src/features/reports/ReportView.tsx` into an article layout: 64-ch column, display-serif `<h1>`, mono `<time>` below a hairline rule, optional sentiment `<Chip>` row.
@@ -64,6 +54,16 @@ Every component rewrite must continue to satisfy the same a11y and state-machine
 - Rule source: workspace steering rule — update existing `README.md` only when public API or architecture changes.
 
 ## Completed Tasks
+
+### Phase C — Task 14b. Sidebar rewrite
+
+- [x] 14.1 Rebuild `src/app/layout/Sidebar.tsx` to group entries by `Today / This week / Earlier` using the `groupByRecency` helper from Task 14a.
+- [x] 14.2 Each entry shows title (body font) + date/slug (mono font, `--font-size-micro`).
+- [x] 14.3 Active entry uses the `.sidebar-link.active` rule from Task 2, plus a 2px inline-start accent rule (still centralised in `tokens.css`).
+- [x] 14.4 Add hover/focus preload: on `onMouseEnter` / `onFocus`, call `preloadReport(slug)` without awaiting.
+- [x] 14.5 Replace the text loading state with three `<Skeleton>` rows.
+- [x] 14.6 Keep the error-branch Retry button (now via the Button primitive) and `aria-label="Report archive"` on the nav.
+- Rule sources: `bundle-preload`, `rerender-no-inline-components` (dedicated group and item components), `rendering-hoist-jsx` (loading placeholder hoisted).
 
 ### Phase C — Task 14a. Sidebar domain helpers — `groupByRecency` and `preloadReport`
 

@@ -1,43 +1,54 @@
-import { useCallback, useEffect, useState } from "react";
-import type { CSSProperties, ReactElement } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import type { ReactElement } from "react";
 import { NavLink } from "react-router-dom";
 
-import { displayTitle } from "../../domain/reportMetadata";
+import { displayTitle, groupByRecency } from "../../domain/reportMetadata";
+import type { GroupedReports } from "../../domain/reportMetadata";
 import type { ReportMetadata } from "../../wireBackend/types";
 import { BackendError } from "../../wireBackend/types";
-import { listReports } from "../../wireBackend/staticBackend";
+import { listReports, preloadReport } from "../../wireBackend/staticBackend";
+import { Button } from "../../ui/Button";
+import { SectionLabel } from "../../ui/SectionLabel";
+import { Skeleton } from "../../ui/Skeleton";
+
+import "./Sidebar.css";
 
 // ---------------------------------------------------------------------------
 // Sidebar — Portal archive navigation.
 //
-// Renders <nav aria-label="Report archive"> containing one <ul> with one <li>
-// per ReportMetadata. Each entry is a React Router <NavLink> to
-// `/reports/{slug}`; NavLink's built-in behavior sets `aria-current="page"`
-// on the active anchor (Req 3.5, 16.3), and toggles a `sidebar-link active`
-// className that the global `.sidebar-link.active` rule in `styles/tokens.css`
-// renders with an inline-start accent + bolder weight so the active state
-// is visually distinct from mere color (WCAG 1.4.1). Native <a> semantics
-// make entries keyboard focusable and Enter/Space activatable (Req 3.1,
-// 3.2, 16.2), and React Router's history preserves browser back/forward
-// (Req 3.6).
+// Renders `<nav aria-label="Report archive">` containing one labeled
+// section per non-empty recency bucket (Today / This week / Earlier) plus
+// one `<ul>` of `<NavLink>` entries per section. NavLink toggles the
+// `sidebar-link active` className on the current route; the global
+// `.sidebar-link.active` rule in `styles/tokens.css` applies the
+// inline-start accent plus bolder weight. aria-current="page" is still
+// emitted by React Router (Req 3.5, 16.3).
 //
-// Labels are produced by `displayTitle(entry, entries)` where `entries` is
-// the full array, so the four-branch fallback and its disambiguation read
+// Each entry's label is produced by `displayTitle(entry, entries)` where
+// `entries` is the full array, so the four-branch title fallback reads
 // from the same sibling set as elsewhere in the Portal (Req 4.2, 4.3).
-// Dates are shown as `YYYY-MM-DD` via `generatedAt.slice(0, 10)` (Req 2.4).
+// Dates are shown as `YYYY-MM-DD` via `generatedAt.slice(0, 10)`
+// (Req 2.4). The slug appears beneath the date in the mono font.
+//
+// Preload: on `onMouseEnter` / `onFocus` for each entry we fire a
+// non-awaited `preloadReport(slug)` from `wireBackend/staticBackend.ts`
+// so the Markdown body is already in the LRU cache by the time the
+// Visitor clicks.
 //
 // States:
-//   - loading       → lightweight "Loading archive…" placeholder.
-//   - error         → "Archive unavailable." banner + Retry button (Req 2.6,
-//                     9.4). Only `DATA_SOURCE_UNAVAILABLE` surfaces this
-//                     branch; any other BackendError is re-thrown so an
-//                     upstream boundary handles it.
-//   - empty         → "No reports available yet." placeholder (Req 2.5).
-//   - success       → <ul> of NavLinks in disk order (Req 2.1, 2.2, 2.3).
+//   - loading   → three Skeleton rows inside a single group placeholder.
+//   - error     → "Archive unavailable." banner + Retry button
+//                 (Req 2.6, 9.4). Only `DATA_SOURCE_UNAVAILABLE`
+//                 surfaces this branch; any other BackendError is still
+//                 treated as archive-unavailable rather than left to
+//                 crash the Sidebar (the Layout's errorElement is for
+//                 route errors, not sibling errors).
+//   - empty     → "No reports available yet." placeholder (Req 2.5).
+//   - success   → grouped `<ul>` sections (Req 2.1, 2.2, 2.3).
 //
-// Entries stay interactive regardless of any Generation Run status so the
-// archive remains navigable during pending, failed, or completed runs
-// (Req 5.5).
+// Entries stay interactive regardless of any Generation Run status so
+// the archive remains navigable during pending, failed, or completed
+// runs (Req 5.5).
 //
 // Realizes design Properties 2 (composition), 3 (date format), 4
 // (aria-current), and 7 (navigability during generation).
@@ -88,16 +99,11 @@ export function Sidebar(): ReactElement {
   }, []);
 
   return (
-    <nav aria-label="Report archive" style={navStyle}>
+    <nav aria-label="Report archive" className="sidebar">
       <SidebarBody state={state} onRetry={retry} />
     </nav>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Internal body renderer — a pure function of `(state, onRetry)` so the
-// Sidebar's state machine stays small and the branches are obvious.
-// ---------------------------------------------------------------------------
 
 interface SidebarBodyProps {
   readonly state: LoadState;
@@ -106,95 +112,141 @@ interface SidebarBodyProps {
 
 function SidebarBody({ state, onRetry }: SidebarBodyProps): ReactElement {
   if (state.kind === "loading") {
-    return <p style={placeholderStyle}>Loading archive…</p>;
+    return SIDEBAR_LOADING_PLACEHOLDER;
   }
 
   if (state.kind === "error") {
     return (
-      <div style={errorBlockStyle}>
-        <p style={placeholderStyle}>Archive unavailable.</p>
-        <button type="button" onClick={onRetry} style={retryButtonStyle}>
+      <div className="sidebar__error">
+        <p className="sidebar__placeholder">Archive unavailable.</p>
+        <Button variant="ghost" size="sm" onClick={onRetry}>
           Retry
-        </button>
+        </Button>
       </div>
     );
   }
 
   if (state.entries.length === 0) {
-    return <p style={placeholderStyle}>No reports available yet.</p>;
+    return <p className="sidebar__placeholder">No reports available yet.</p>;
   }
 
+  return <SidebarGroups entries={state.entries} />;
+}
+
+// ---------------------------------------------------------------------------
+// SidebarGroups — renders the three recency buckets.
+//
+// `groupByRecency` runs once per `entries` change via `useMemo`. `now`
+// is captured from `Date.now()` at render time; the helper is pure so
+// the result is stable for the rest of the render pass.
+// ---------------------------------------------------------------------------
+
+interface SidebarGroupsProps {
+  readonly entries: ReadonlyArray<ReportMetadata>;
+}
+
+function SidebarGroups({ entries }: SidebarGroupsProps): ReactElement {
+  const grouped = useMemo<GroupedReports>(
+    () => groupByRecency(entries, Date.now()),
+    [entries],
+  );
+
   return (
-    <ul style={listStyle}>
-      {state.entries.map((entry) => (
-        <li key={entry.id} style={listItemStyle}>
-          <NavLink
-            to={`/reports/${entry.slug}`}
-            className={({ isActive }) =>
-              isActive ? "sidebar-link active" : "sidebar-link"
-            }
-          >
-            <span style={titleStyle}>{displayTitle(entry, state.entries)}</span>
-            <span style={dateStyle}>{entry.generatedAt.slice(0, 10)}</span>
-          </NavLink>
-        </li>
-      ))}
-    </ul>
+    <>
+      {grouped.today.length > 0 ? (
+        <SidebarGroup
+          label="Today"
+          entries={grouped.today}
+          siblings={entries}
+        />
+      ) : null}
+      {grouped.thisWeek.length > 0 ? (
+        <SidebarGroup
+          label="This week"
+          entries={grouped.thisWeek}
+          siblings={entries}
+        />
+      ) : null}
+      {grouped.earlier.length > 0 ? (
+        <SidebarGroup
+          label="Earlier"
+          entries={grouped.earlier}
+          siblings={entries}
+        />
+      ) : null}
+    </>
+  );
+}
+
+interface SidebarGroupProps {
+  readonly label: string;
+  readonly entries: ReadonlyArray<ReportMetadata>;
+  readonly siblings: ReadonlyArray<ReportMetadata>;
+}
+
+function SidebarGroup({
+  label,
+  entries,
+  siblings,
+}: SidebarGroupProps): ReactElement {
+  return (
+    <section className="sidebar__group">
+      <SectionLabel>{label}</SectionLabel>
+      <ul className="sidebar__list">
+        {entries.map((entry) => (
+          <SidebarItem key={entry.id} entry={entry} siblings={siblings} />
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+interface SidebarItemProps {
+  readonly entry: ReportMetadata;
+  readonly siblings: ReadonlyArray<ReportMetadata>;
+}
+
+function SidebarItem({ entry, siblings }: SidebarItemProps): ReactElement {
+  const handlePrefetch = useCallback((): void => {
+    preloadReport(entry.slug);
+  }, [entry.slug]);
+
+  return (
+    <li className="sidebar__item">
+      <NavLink
+        to={`/reports/${entry.slug}`}
+        onMouseEnter={handlePrefetch}
+        onFocus={handlePrefetch}
+        className={({ isActive }) =>
+          isActive ? "sidebar-link active" : "sidebar-link"
+        }
+      >
+        <span className="sidebar-link__title">
+          {displayTitle(entry, siblings)}
+        </span>
+        <span className="sidebar-link__meta">
+          <time dateTime={entry.generatedAt}>
+            {entry.generatedAt.slice(0, 10)}
+          </time>
+          <span aria-hidden="true">·</span>
+          <span>{entry.slug}</span>
+        </span>
+      </NavLink>
+    </li>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Inline styles. Kept minimal and token-driven so the Sidebar inherits the
-// Portal's palette and reduced-motion defaults from `styles/tokens.css`.
+// Hoisted loading placeholder (rendering-hoist-jsx).
 // ---------------------------------------------------------------------------
 
-const navStyle: CSSProperties = {
-  padding: "var(--space-4)",
-  borderRight: "1px solid var(--color-border)",
-  minWidth: "16rem",
-};
-
-const placeholderStyle: CSSProperties = {
-  margin: 0,
-  color: "var(--color-text-muted)",
-  fontSize: "var(--font-size-small)",
-};
-
-const errorBlockStyle: CSSProperties = {
-  display: "flex",
-  flexDirection: "column",
-  gap: "var(--space-2)",
-};
-
-const retryButtonStyle: CSSProperties = {
-  alignSelf: "flex-start",
-  padding: "var(--space-1) var(--space-3)",
-  border: "1px solid var(--color-border)",
-  borderRadius: "4px",
-  background: "transparent",
-  color: "inherit",
-  cursor: "pointer",
-  font: "inherit",
-};
-
-const listStyle: CSSProperties = {
-  listStyle: "none",
-  margin: 0,
-  padding: 0,
-  display: "flex",
-  flexDirection: "column",
-  gap: "var(--space-1)",
-};
-
-const listItemStyle: CSSProperties = {
-  margin: 0,
-};
-
-const titleStyle: CSSProperties = {
-  fontSize: "var(--font-size-body)",
-};
-
-const dateStyle: CSSProperties = {
-  fontSize: "var(--font-size-small)",
-  color: "var(--color-text-muted)",
-};
+const SIDEBAR_LOADING_PLACEHOLDER: ReactElement = (
+  <div className="sidebar__skeletons" aria-hidden="true">
+    {[0, 1, 2].map((i) => (
+      <div key={i} className="sidebar__skeleton-row">
+        <Skeleton variant="line" width="80%" />
+        <Skeleton variant="line" width="40%" />
+      </div>
+    ))}
+  </div>
+);

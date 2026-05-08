@@ -1,0 +1,78 @@
+/*
+ * Sidebar (src/app/layout/Sidebar.tsx).
+ *
+ * The sidebar is a nav landmark containing grouped sections — Today,
+ * This week, Earlier — each introduced by a SectionLabel eyebrow. The
+ * active row styling (`.sidebar-link.active`) is defined centrally in
+ * tokens.css so the accent rule and bolder weight stay in one place.
+ */
+
+.sidebar {
+  padding: var(--space-5) var(--space-5);
+  border-right: var(--rule-hairline) solid var(--color-rule);
+  min-width: 18rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.sidebar__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sidebar__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.sidebar__item {
+  margin: 0;
+}
+
+.sidebar-link__title {
+  font-family: var(--font-body);
+  font-size: var(--font-size-body);
+  line-height: var(--line-tight);
+  color: var(--color-ink);
+}
+
+.sidebar-link__meta {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-micro);
+  line-height: var(--line-tight);
+  color: var(--color-ink-muted);
+  display: flex;
+  gap: var(--space-2);
+  align-items: baseline;
+}
+
+.sidebar__placeholder {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-small);
+}
+
+.sidebar__error {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sidebar__skeletons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+}
+
+.sidebar__skeleton-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
