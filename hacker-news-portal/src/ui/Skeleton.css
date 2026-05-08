@@ -1,0 +1,43 @@
+/*
+ * Skeleton primitive (src/ui/Skeleton.tsx).
+ *
+ * A lightweight shimmer-aware rectangle used as a content placeholder.
+ * The shimmer keyframe is disabled automatically by the global
+ * `prefers-reduced-motion: reduce` block in tokens.css, which resets
+ * animation-duration to ~0, so no per-component override is required.
+ */
+
+@keyframes ui-skeleton-shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
+
+.ui-skeleton {
+  display: block;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-rule);
+  background-image: linear-gradient(
+    90deg,
+    var(--color-rule) 0%,
+    var(--color-bg-elev) 40%,
+    var(--color-rule) 80%
+  );
+  background-size: 400px 100%;
+  background-repeat: no-repeat;
+  animation: ui-skeleton-shimmer 1400ms ease-in-out infinite;
+  color: transparent;
+}
+
+.ui-skeleton--line {
+  height: 1em;
+}
+
+.ui-skeleton--block {
+  width: 100%;
+  height: 100%;
+  min-height: 4rem;
+}

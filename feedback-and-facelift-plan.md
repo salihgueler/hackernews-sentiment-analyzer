@@ -20,7 +20,7 @@ No visual components change in this phase. The goal is to land tokens, fonts, an
 ### Task 11. Generic UI primitives
 
 - [x] 11.1 Create `src/ui/Button.tsx` exposing `variant: "primary" | "ghost" | "danger"`, `size`, `isLoading`, and `icon` (optional `lucide-react` glyph). Uses the new tokens via co-located `Button.css`.
-- [ ] 11.2 Create `src/ui/Skeleton.tsx` exposing a shimmer-aware skeleton primitive (static rectangle under reduced motion).
+- [x] 11.2 Create `src/ui/Skeleton.tsx` exposing a shimmer-aware skeleton primitive (static rectangle under reduced motion).
 - [ ] 11.3 Create `src/ui/Chip.tsx` for sentiment/date chips, styled with the mono token.
 - [ ] 11.4 Create `src/ui/SectionLabel.tsx` for small-caps section headings.
 - [x] 11.5 Import `lucide-react` only via top-level named imports; do not use deep subpaths (avoids the skill's `strict`/`noImplicitAny` warning).
@@ -89,6 +89,11 @@ Every component rewrite must continue to satisfy the same a11y and state-machine
 - Rule source: workspace steering rule — update existing `README.md` only when public API or architecture changes.
 
 ## Completed Tasks
+
+### Phase B — Task 11b. UI primitive — Skeleton
+
+- [x] 11.2 Create `src/ui/Skeleton.tsx` exposing a shimmer-aware skeleton primitive. Under `prefers-reduced-motion: reduce` the global animation-duration reset in tokens.css collapses the shimmer to a static rectangle.
+- Rule sources: `frontend-design`, `rendering-hoist-jsx` (static variant class list).
 
 ### Phase B — Task 11a. UI primitive — Button
 
