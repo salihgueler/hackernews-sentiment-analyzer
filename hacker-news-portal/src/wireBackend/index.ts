@@ -52,6 +52,7 @@ export {
   bumpGenerationCacheToken,
   getGenerationCacheToken,
   startGeneration,
+  subscribeGenerationCacheToken,
 } from "./generationClient";
 
 /**

@@ -65,9 +65,56 @@ export function getGenerationCacheToken(): string {
   return generationCacheToken;
 }
 
+// ---------------------------------------------------------------------------
+// Subscription layer.
+//
+// After `bumpGenerationCacheToken` writes a new value, registered listeners
+// fire so UI surfaces (today: the Sidebar) can re-query the archive without
+// depending on a full page reload or a manual Retry. Kept deliberately
+// tiny — a module-scoped `Set<() => void>` — so there is no zero-dep
+// event-emitter library to audit and no provider wrapping required.
+//
+// Each listener is invoked inside its own `try/catch` so one faulty
+// subscriber cannot prevent other subscribers from observing the bump,
+// and the thrown value is logged to `console.error` rather than
+// swallowed so stray errors still surface in DevTools. Listeners may
+// unsubscribe themselves by calling the returned disposer.
+// ---------------------------------------------------------------------------
+
+const cacheTokenListeners: Set<() => void> = new Set();
+
+/**
+ * Subscribe to cache-token updates. Returns an unsubscribe function that
+ * removes the listener from the set; idempotent if called more than once.
+ *
+ * The returned function matches the `useSyncExternalStore` `subscribe`
+ * contract so call sites can pass this function directly.
+ */
+export function subscribeGenerationCacheToken(
+  listener: () => void,
+): () => void {
+  cacheTokenListeners.add(listener);
+  return () => {
+    cacheTokenListeners.delete(listener);
+  };
+}
+
 /** Advances the cache-bust token; called after every successful generation. */
 export function bumpGenerationCacheToken(token: string): void {
   generationCacheToken = token;
+  // Snapshot before iterating so a listener that unsubscribes during its
+  // own invocation does not mutate the Set we are walking.
+  const snapshot = Array.from(cacheTokenListeners);
+  for (const listener of snapshot) {
+    try {
+      listener();
+    } catch (err) {
+      // Intentionally keep going; one bad subscriber must not block the
+      // rest. Surface the error to DevTools instead of swallowing it.
+      // eslint-disable-next-line no-console -- subscriber error surface
+      console.error("generationCacheToken listener threw:", err);
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
