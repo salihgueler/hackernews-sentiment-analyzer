@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import type { ReactElement } from "react";
 import { NavLink } from "react-router-dom";
 
@@ -6,6 +12,10 @@ import { displayTitle, groupByRecency } from "../../domain/reportMetadata";
 import type { GroupedReports } from "../../domain/reportMetadata";
 import type { ReportMetadata } from "../../wireBackend/types";
 import { BackendError } from "../../wireBackend/types";
+import {
+  getGenerationCacheToken,
+  subscribeGenerationCacheToken,
+} from "../../wireBackend/generationClient";
 import { listReports, preloadReport } from "../../wireBackend/staticBackend";
 import { Button } from "../../ui/Button";
 import { SectionLabel } from "../../ui/SectionLabel";
@@ -52,6 +62,17 @@ import "./Sidebar.css";
 //
 // Realizes design Properties 2 (composition), 3 (date format), 4
 // (aria-current), and 7 (navigability during generation).
+//
+// Live refresh: the Sidebar subscribes to
+// `subscribeGenerationCacheToken` via `useSyncExternalStore` and
+// includes the current token in the fetch effect's dep array. A
+// successful Generation Run advances the token (via
+// `bumpGenerationCacheToken` inside the generation client), fans out
+// to the subscriber, React schedules an effect re-run, and
+// `listReports()` refetches `/reports/index.json?v=<token>` so the
+// new entry appears at the top of the Today bucket without a page
+// reload. The existing Retry button is preserved as an orthogonal
+// manual trigger.
 // ---------------------------------------------------------------------------
 
 type LoadState =
@@ -63,6 +84,14 @@ export function Sidebar(): ReactElement {
   const [state, setState] = useState<LoadState>({ kind: "loading" });
   // `reloadToken` is bumped by the Retry button to re-fire the effect.
   const [reloadToken, setReloadToken] = useState<number>(0);
+  // Subscribe to the generation client's cache-bust token. A successful
+  // Generation Run advances the token, which triggers a re-render and
+  // re-fires the fetch effect below.
+  const cacheToken = useSyncExternalStore(
+    subscribeGenerationCacheToken,
+    getGenerationCacheToken,
+    getGenerationCacheToken,
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -92,7 +121,7 @@ export function Sidebar(): ReactElement {
     return () => {
       cancelled = true;
     };
-  }, [reloadToken]);
+  }, [reloadToken, cacheToken]);
 
   const retry = useCallback((): void => {
     setReloadToken((prev) => prev + 1);
