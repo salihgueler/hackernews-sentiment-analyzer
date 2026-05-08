@@ -238,7 +238,7 @@ function SidebarGroup({
     .join(" ");
   return (
     <section className={composedClassName}>
-      <SectionLabel>{label}</SectionLabel>
+      <SectionLabel className="sidebar__group-label">{label}</SectionLabel>
       <ul className="sidebar__list">
         {entries.map((entry) => (
           <SidebarItem key={entry.id} entry={entry} siblings={siblings} />
