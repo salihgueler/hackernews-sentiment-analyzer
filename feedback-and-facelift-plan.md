@@ -27,6 +27,17 @@ Every component rewrite must continue to satisfy the same a11y and state-machine
 
 ## Completed Tasks
 
+### Post-facelift — Phase D. Sidebar live refresh + visual polish
+
+- [x] D.1 Add `subscribeGenerationCacheToken(listener)` to `src/wireBackend/generationClient.ts`. Listeners are held in a module-scoped `Set<() => void>`; `bumpGenerationCacheToken` snapshots the set before fan-out and wraps each invocation in try/catch with a `console.error` fallback so one bad listener cannot block the rest. Returned disposer matches the `useSyncExternalStore` subscribe contract. Re-exported from the wireBackend barrel.
+- [x] D.2 Wire the Sidebar's fetch effect to the cache-token subscription via `useSyncExternalStore(subscribeGenerationCacheToken, getGenerationCacheToken)` and include the token in the dep array alongside the existing `reloadToken`. A successful Generation Run now refreshes the archive with no page reload; the Retry button remains orthogonal.
+- [x] D.3 Extend `tokens.css` with `--color-canvas`, `--color-surface-sunken`, `--color-accent-ink`, `--color-rule-strong`, `--radius-pill`, `--shadow-raised`, and `--shadow-raised-hover`. Active sidebar row gains a soft accent-tinted background alongside the existing inline-start accent + bolder weight (three cues → WCAG 1.4.1 still holds). Inactive rows pick up a subtle hover background. Contrast ratios recomputed and documented.
+- [x] D.4 Re-lay the shell on the token grid: masthead padding `space-6 / space-8 / space-5 / space-8`, main column `space-6 / space-8` with `gap: space-5`, sidebar `space-6 / space-4` on a sunken surface with group gap `space-6`. Group labels pick up `padding-inline: space-3` so eyebrows align with row text. `app-body` min-height switches to `calc(100vh - 7.5rem)` to fill the viewport without a scroll bounce.
+- [x] D.5 Primary Button variant becomes a pill with `--radius-pill`, `--shadow-raised`, weight 600, and `space-3 / space-5` padding. Hover transitions to `--color-ink`, swaps to `--shadow-raised-hover`, and lifts 1px. Ghost and danger variants unchanged. Transitions extended to include box-shadow/transform; both are collapsed by the global reduced-motion reset.
+- [x] D.6 Article column max-width grows from 64ch to 68ch, header gap opens to `space-3`, and a small 2px accent stroke threads above the h1 as a decorative tie back to the masthead. The hairline rule below still carries the structural hierarchy for readers that rely on structure alone.
+- [x] D.7 EmptyState gap relaxes to `space-4` with vertical padding; illustrations shrink from 6rem to 4.5rem at 0.9 opacity. Chip adds `padding-block: space-1`. Generation banner inline styles drop `marginTop` now that `app-main`'s flex gap handles inter-block spacing.
+- Rule sources: `rendering-no-inline-styles` (banner gap moved to flex gap), `client-event-listeners` (single external-store subscription), `frontend-design` (pill CTA, sunken sidebar column, accent tie), `rerender-no-inline-components` (spacing owned by co-located CSS).
+
 ### Phase C — Task 18. Documentation
 
 - [x] 18.1 Update `hacker-news-portal/README.md` only with sections on the new font/token story, the React Compiler path through `reactCompilerPreset`, and the enabled tsconfig flags.
