@@ -131,11 +131,7 @@ function LandingRoute(): ReactElement {
   }, []);
 
   if (state.kind === "loading") {
-    return (
-      <section style={sectionStyle}>
-        <p style={placeholderStyle}>Loading archive…</p>
-      </section>
-    );
+    return LOADING_ARCHIVE_PLACEHOLDER;
   }
 
   if (state.kind === "empty") {
@@ -220,3 +216,15 @@ const retryButtonStyle: CSSProperties = {
   cursor: "pointer",
   font: "inherit",
 };
+
+// ---------------------------------------------------------------------------
+// Static JSX hoisted to module scope so the landing loading branch reuses
+// the same element reference across renders (rendering-hoist-jsx). Alert
+// banners remain inline because their copy is dynamic.
+// ---------------------------------------------------------------------------
+
+const LOADING_ARCHIVE_PLACEHOLDER: ReactElement = (
+  <section style={sectionStyle}>
+    <p style={placeholderStyle}>Loading archive…</p>
+  </section>
+);

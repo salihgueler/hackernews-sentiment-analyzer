@@ -11,14 +11,6 @@ Go through and implement the tasks below for the project under `hacker-news-port
 
 These are the concrete defects and best-practice misses found in the audit. They are ordered so every later phase builds on a clean base.
 
-### Task 5. Hoist placeholder JSX to module scope
-
-- [ ] 5.1 In `src/app/routes.tsx`, hoist the `<section>…Loading archive…</section>` fragment into a module-scoped constant.
-- [ ] 5.2 In `src/features/reports/ReportView.tsx`, hoist the `Loading report…` placeholder into a module-scoped constant.
-- [ ] 5.3 In `src/markdown/MarkdownRenderer.tsx`, hoist the `<p>Loading report…</p>` Suspense fallback.
-- [ ] 5.4 Keep alert banners dynamic — only the static fragments move.
-- Rule source: `rendering-hoist-jsx`. (Phase C replaces these with real skeletons, but hoisting first keeps the diff readable.)
-
 ### Task 6. Prepare for scroll/resize-driven effects
 
 - [ ] 6.1 Create `src/app/hooks/useScrollY.ts` exposing a `useScrollY()` hook that reads `window.scrollY` through `useSyncExternalStore` with a `{ passive: true }` listener.
@@ -158,6 +150,14 @@ Every component rewrite must continue to satisfy the same a11y and state-machine
 - Rule source: workspace steering rule — update existing `README.md` only when public API or architecture changes.
 
 ## Completed Tasks
+
+### Phase A — Task 5. Hoist placeholder JSX to module scope
+
+- [x] 5.1 In `src/app/routes.tsx`, hoist the `<section>…Loading archive…</section>` fragment into a module-scoped constant.
+- [x] 5.2 In `src/features/reports/ReportView.tsx`, hoist the `Loading report…` placeholder into a module-scoped constant.
+- [x] 5.3 In `src/markdown/MarkdownRenderer.tsx`, hoist the `<p>Loading report…</p>` Suspense fallback.
+- [x] 5.4 Keep alert banners dynamic — only the static fragments move.
+- Rule source: `rendering-hoist-jsx`. (Phase C replaces these with real skeletons, but hoisting first keeps the diff readable.)
 
 ### Phase A — Task 4. Eliminate the duplicate `listReports()` render on landing
 

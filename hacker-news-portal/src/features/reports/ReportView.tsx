@@ -147,11 +147,7 @@ export function ReportView({
   }, [slug, initialMetadata]);
 
   if (state.kind === "loading") {
-    return (
-      <section style={sectionStyle}>
-        <p style={placeholderStyle}>Loading report…</p>
-      </section>
-    );
+    return LOADING_REPORT_PLACEHOLDER;
   }
 
   if (state.kind === "notFound") {
@@ -227,3 +223,16 @@ const alertStyle: CSSProperties = {
   margin: 0,
   color: "var(--color-text)",
 };
+
+// ---------------------------------------------------------------------------
+// Static JSX hoisted to module scope so the loading branch reuses the same
+// element reference across renders (rendering-hoist-jsx). The alert banner
+// stays inline because its copy is identical but its role is dynamic at
+// the call site and Phase C replaces it with a real skeleton.
+// ---------------------------------------------------------------------------
+
+const LOADING_REPORT_PLACEHOLDER: ReactElement = (
+  <section style={sectionStyle}>
+    <p style={placeholderStyle}>Loading report…</p>
+  </section>
+);

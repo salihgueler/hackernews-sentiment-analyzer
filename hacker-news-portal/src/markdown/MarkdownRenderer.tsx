@@ -21,6 +21,14 @@ import type { ReactElement } from "react";
 
 const LazyInner = lazy(() => import("./MarkdownRenderer.impl"));
 
+/**
+ * Static Suspense fallback hoisted to module scope so it reuses the same
+ * element reference across every render of the wrapper
+ * (rendering-hoist-jsx). Phase C replaces this with a real skeleton that
+ * matches the final article shape.
+ */
+const LOADING_FALLBACK: ReactElement = <p>Loading report…</p>;
+
 export interface MarkdownRendererProps {
   readonly children: string;
 }
@@ -36,7 +44,7 @@ export function MarkdownRenderer({
   children,
 }: MarkdownRendererProps): ReactElement {
   return (
-    <Suspense fallback={<p>Loading report…</p>}>
+    <Suspense fallback={LOADING_FALLBACK}>
       <LazyInner>{children}</LazyInner>
     </Suspense>
   );
