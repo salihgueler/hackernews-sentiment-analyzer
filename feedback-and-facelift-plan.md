@@ -27,8 +27,8 @@ Every component rewrite must continue to satisfy the same a11y and state-machine
 
 - [ ] 13.1 Reshape `src/app/layout/Layout.tsx` into a slim masthead: small-caps eyebrow, display-serif site title, ghost-style Generate button.
 - [ ] 13.2 Replace inline `CSSProperties` with a co-located `Layout.module.css` (or Tailwind-less CSS file) using the new tokens. No new styling library added.
-- [ ] 13.3 Swap the current `GenerateReportButton` implementation to use `Button` from `src/ui/Button.tsx` with `variant="primary"` and a `lucide-react` sparkle icon.
-- [ ] 13.4 Keep the `aria-busy`, `disabled`, and async state-machine untouched.
+- [x] 13.3 Swap the current `GenerateReportButton` implementation to use `Button` from `src/ui/Button.tsx` with `variant="primary"` and a `lucide-react` sparkle icon.
+- [x] 13.4 Keep the `aria-busy`, `disabled`, and async state-machine untouched.
 - [ ] 13.5 Verify the banner still lives inside `<main>` (Task 3).
 
 ### Task 14. Sidebar facelift
@@ -72,6 +72,12 @@ Every component rewrite must continue to satisfy the same a11y and state-machine
 - Rule source: workspace steering rule — update existing `README.md` only when public API or architecture changes.
 
 ## Completed Tasks
+
+### Phase C — Task 13a. GenerateReportButton uses Button primitive
+
+- [x] 13.3 Swap the current `GenerateReportButton` implementation to use `Button` from `src/ui/Button.tsx` with `variant="primary"` and a `lucide-react` sparkle icon.
+- [x] 13.4 Keep the `aria-busy`, `disabled`, and async state-machine untouched.
+- Rule sources: `rerender-no-inline-components` (stable component identity), `bundle-barrel-imports` (top-level named lucide import).
 
 ### Phase B — Task 12. Scoped Markdown typography
 

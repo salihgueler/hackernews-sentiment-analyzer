@@ -1,17 +1,24 @@
 import { useCallback, useState } from "react";
-import type { CSSProperties, ReactElement } from "react";
+import type { ReactElement } from "react";
 import { useNavigate } from "react-router-dom";
+import { Sparkles } from "lucide-react";
 
 import {
   BackendError,
   invalidateStaticCaches,
   startGeneration,
 } from "../../wireBackend";
+import { Button } from "../../ui/Button";
 import { useGenerationStatus } from "./GenerationStatus";
 
 // ---------------------------------------------------------------------------
 // GenerateReportButton — primary call-to-action that kicks off a Generation
 // Run (Req 5.1, 5.2).
+//
+// The render layer delegates to the `Button` UI primitive (variant="primary")
+// so the visual treatment stays consistent with the rest of the Portal's
+// design system and a11y wiring (`aria-busy`, disabled/pending semantics)
+// is funneled through a single place.
 //
 // Local state machine is intentionally tiny: `"idle" | "pending"`. The shared
 // `GenerationStatus` context owns the "progress", "in-progress banner", and
@@ -49,8 +56,9 @@ export function GenerateReportButton(): ReactElement {
   const navigate = useNavigate();
 
   const handleClick = useCallback((): void => {
-    // Guard against double-activation; the `disabled` attribute already
-    // suppresses most paths, but touch/keyboard races can slip through.
+    // Guard against double-activation; the Button primitive's disabled
+    // attribute already suppresses most paths, but touch/keyboard races
+    // can slip through.
     if (state === "pending") {
       return;
     }
@@ -99,36 +107,13 @@ export function GenerateReportButton(): ReactElement {
   const isPending = state === "pending";
 
   return (
-    <button
-      type="button"
+    <Button
+      variant="primary"
       onClick={handleClick}
-      disabled={isPending}
-      aria-busy={isPending}
-      style={isPending ? buttonPendingStyle : buttonStyle}
+      isLoading={isPending}
+      icon={Sparkles}
     >
       Generate Report
-    </button>
+    </Button>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Inline styles. Token-driven so the button inherits the Portal palette and
-// respects the global `prefers-reduced-motion` rule from `styles/tokens.css`.
-// ---------------------------------------------------------------------------
-
-const buttonStyle: CSSProperties = {
-  padding: "var(--space-2) var(--space-4)",
-  border: "1px solid var(--color-accent)",
-  borderRadius: "4px",
-  background: "var(--color-accent)",
-  color: "var(--color-bg)",
-  fontSize: "var(--font-size-body)",
-  fontFamily: "inherit",
-  cursor: "pointer",
-};
-
-const buttonPendingStyle: CSSProperties = {
-  ...buttonStyle,
-  cursor: "progress",
-  opacity: 0.7,
-};
