@@ -173,7 +173,7 @@ export function ReportView({
 
   return (
     <article className="report-view">
-      <header className="report-view__header">
+      <header className="report-view__header reveal-3">
         <h1 className="report-view__title">{title}</h1>
         <div className="report-view__meta">
           <time dateTime={metadata.generatedAt}>{metadata.generatedAt}</time>

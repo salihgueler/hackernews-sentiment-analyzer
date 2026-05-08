@@ -151,6 +151,16 @@ function SidebarGroups({ entries }: SidebarGroupsProps): ReactElement {
     [entries],
   );
 
+  // Apply the `.reveal-2` class to the first non-empty group only so the
+  // three reveal targets (masthead h1 → first sidebar section → article
+  // header) animate in a consistent cascade.
+  let revealConsumed = false;
+  const reveal = (): string | undefined => {
+    if (revealConsumed) return undefined;
+    revealConsumed = true;
+    return "reveal-2";
+  };
+
   return (
     <>
       {grouped.today.length > 0 ? (
@@ -158,6 +168,7 @@ function SidebarGroups({ entries }: SidebarGroupsProps): ReactElement {
           label="Today"
           entries={grouped.today}
           siblings={entries}
+          className={reveal()}
         />
       ) : null}
       {grouped.thisWeek.length > 0 ? (
@@ -165,6 +176,7 @@ function SidebarGroups({ entries }: SidebarGroupsProps): ReactElement {
           label="This week"
           entries={grouped.thisWeek}
           siblings={entries}
+          className={reveal()}
         />
       ) : null}
       {grouped.earlier.length > 0 ? (
@@ -172,6 +184,7 @@ function SidebarGroups({ entries }: SidebarGroupsProps): ReactElement {
           label="Earlier"
           entries={grouped.earlier}
           siblings={entries}
+          className={reveal()}
         />
       ) : null}
     </>
@@ -182,15 +195,20 @@ interface SidebarGroupProps {
   readonly label: string;
   readonly entries: ReadonlyArray<ReportMetadata>;
   readonly siblings: ReadonlyArray<ReportMetadata>;
+  readonly className?: string | undefined;
 }
 
 function SidebarGroup({
   label,
   entries,
   siblings,
+  className,
 }: SidebarGroupProps): ReactElement {
+  const composedClassName = ["sidebar__group", className]
+    .filter((value): value is string => Boolean(value))
+    .join(" ");
   return (
-    <section className="sidebar__group">
+    <section className={composedClassName}>
       <SectionLabel>{label}</SectionLabel>
       <ul className="sidebar__list">
         {entries.map((entry) => (

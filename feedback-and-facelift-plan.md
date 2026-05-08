@@ -23,15 +23,6 @@ No visual components change in this phase. The goal is to land tokens, fonts, an
 
 Every component rewrite must continue to satisfy the same a11y and state-machine contracts already documented in the source files (keep the comment blocks — edit them only where behavior changes).
 
-### Task 17. Motion and micro-interactions
-
-- [ ] 17.1 Add a CSS-only staggered reveal for the masthead → first sidebar section → article header on the initial landing paint, using `animation-delay` on three elements only.
-- [ ] 17.2 The reveal is fully neutralized by the existing `prefers-reduced-motion: reduce` block — verify in devtools.
-- [ ] 17.3 Progress banner gets a subtle shimmer on its inner rail (still `role="status"`, still readable without motion).
-- [ ] 17.4 Focus-visible polish: 2px `--color-focus` outline + 2px offset for all interactive elements.
-- [ ] 17.5 No third-party motion library added; pure CSS keyframes.
-- Rule source: `frontend-design` (restrained, intentional motion); existing `prefers-reduced-motion` contract in `tokens.css`.
-
 ### Task 18. Documentation
 
 - [ ] 18.1 Update `hacker-news-portal/README.md` only (do not create new docs) with: the new font/token story, the React Compiler note, and the new tsconfig flags.
@@ -40,6 +31,14 @@ Every component rewrite must continue to satisfy the same a11y and state-machine
 - Rule source: workspace steering rule — update existing `README.md` only when public API or architecture changes.
 
 ## Completed Tasks
+
+### Phase C — Task 17. Motion and micro-interactions
+
+- [x] 17.1 Add a CSS-only staggered reveal for the masthead → first sidebar section → article header using `animation-delay` on `.reveal-1 / .reveal-2 / .reveal-3` (0 / 120 / 240 ms).
+- [x] 17.2 The reveal is fully neutralized by the existing `prefers-reduced-motion: reduce` block in tokens.css — the global animation-duration reset collapses the keyframe.
+- [x] 17.3 Progress banner gets a subtle shimmer on an inner `.progress-rail` (still `role="status"`, still readable without motion).
+- [x] 17.4 Focus-visible polish: tokens.css already carries `outline: var(--focus-ring)` with `outline-offset: 2px`, and every new primitive inherits the rule. No per-component override needed.
+- [x] 17.5 No third-party motion library added; pure CSS keyframes in `src/styles/motion.css`.
 
 ### Phase C — Task 16. Empty / NotFound / ErrorFallback facelift
 

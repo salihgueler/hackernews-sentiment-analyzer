@@ -173,11 +173,14 @@ function GenerationStatusBannerView({
 
   if (state.kind === "progress") {
     // role="status" + aria-label so screen readers announce the run.
-    // Plain text content so the indicator is informative even when the
-    // `prefers-reduced-motion: reduce` global rule suppresses animations.
+    // The plain text content is authoritative for a11y; the
+    // decorative shimmer rail below is dropped under reduced motion
+    // by the global prefers-reduced-motion block in tokens.css
+    // without affecting the announcement.
     return (
       <div role="status" aria-label="Generating report" style={progressStyle}>
         Generating report…
+        <div className="progress-rail" aria-hidden="true" />
       </div>
     );
   }

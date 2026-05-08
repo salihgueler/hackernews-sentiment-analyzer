@@ -60,7 +60,7 @@ export function Layout(): ReactElement {
       <header className="app-header">
         <div className="app-header__brand">
           <SectionLabel>Hacker News · Sentiment Archive</SectionLabel>
-          <h1 className="app-header__title">Hacker News Portal</h1>
+          <h1 className="app-header__title reveal-1">Hacker News Portal</h1>
         </div>
         <GenerateReportButton />
       </header>
