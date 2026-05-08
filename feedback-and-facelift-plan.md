@@ -11,19 +11,6 @@ Go through and implement the tasks below for the project under `hacker-news-port
 
 These are the concrete defects and best-practice misses found in the audit. They are ordered so every later phase builds on a clean base.
 
-### Task 7. Tighten TypeScript, aligned with `strands-agent-typescript`
-
-- [ ] 7.1 Edit `hacker-news-portal/tsconfig.app.json`. Add `"noImplicitOverride": true`, `"forceConsistentCasingInFileNames": true`, `"noImplicitReturns": true`, `"noUncheckedIndexedAccess": true`, `"exactOptionalPropertyTypes": true`.
-- [ ] 7.2 Run `tsc -b` and fix every new error. Expected hot spots:
-  - `src/app/routes.tsx` — index accesses against `sortReportsForDisplay` results.
-  - `src/domain/reportMetadata.ts` — any `siblings[i]` index access.
-  - `src/wireBackend/types.ts` — confirm `BackendError.stage` assignment still satisfies `exactOptionalPropertyTypes`.
-  - `src/features/generate/GenerationStatus.tsx` — same for `setError` payloads.
-- [ ] 7.3 Resolve errors by narrowing (`if (value === undefined) …`) rather than widening types. No new `as` casts and no `any`.
-- [ ] 7.4 Update `tsconfig.node.json` with the same flags so `scripts/` and `plugins/` share the posture.
-- [ ] 7.5 Confirm `verbatimModuleSyntax` + the new flags compose cleanly.
-- Rule sources: TS strictness cross-referenced with `strands-agent-typescript/tsconfig.json`; the `vercel-react-best-practices` skill's compatibility note that deep third-party imports can defeat `strict`/`noImplicitAny`.
-
 ### Task 8. Enable the React Compiler
 
 - [ ] 8.1 Add `babel-plugin-react-compiler` as a dev dependency in `hacker-news-portal/package.json`.
@@ -142,6 +129,19 @@ Every component rewrite must continue to satisfy the same a11y and state-machine
 - Rule source: workspace steering rule — update existing `README.md` only when public API or architecture changes.
 
 ## Completed Tasks
+
+### Phase A — Task 7. Tighten TypeScript, aligned with `strands-agent-typescript`
+
+- [x] 7.1 Edit `hacker-news-portal/tsconfig.app.json`. Add `"noImplicitOverride": true`, `"forceConsistentCasingInFileNames": true`, `"noImplicitReturns": true`, `"noUncheckedIndexedAccess": true`, `"exactOptionalPropertyTypes": true`.
+- [x] 7.2 Run `tsc -b` and fix every new error. Expected hot spots:
+  - `src/app/routes.tsx` — index accesses against `sortReportsForDisplay` results.
+  - `src/domain/reportMetadata.ts` — any `siblings[i]` index access.
+  - `src/wireBackend/types.ts` — confirm `BackendError.stage` assignment still satisfies `exactOptionalPropertyTypes`.
+  - `src/features/generate/GenerationStatus.tsx` — same for `setError` payloads.
+- [x] 7.3 Resolve errors by narrowing (`if (value === undefined) …`) rather than widening types. No new `as` casts and no `any`.
+- [x] 7.4 Update `tsconfig.node.json` with the same flags so `scripts/` and `plugins/` share the posture.
+- [x] 7.5 Confirm `verbatimModuleSyntax` + the new flags compose cleanly.
+- Rule sources: TS strictness cross-referenced with `strands-agent-typescript/tsconfig.json`; the `vercel-react-best-practices` skill's compatibility note that deep third-party imports can defeat `strict`/`noImplicitAny`.
 
 ### Phase A — Task 6. Prepare for scroll/resize-driven effects
 

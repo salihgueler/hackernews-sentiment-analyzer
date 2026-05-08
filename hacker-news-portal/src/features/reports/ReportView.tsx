@@ -151,7 +151,7 @@ export function ReportView({
   }
 
   if (state.kind === "notFound") {
-    return <NotFoundView slug={slug} />;
+    return slug !== undefined ? <NotFoundView slug={slug} /> : <NotFoundView />;
   }
 
   if (state.kind === "unavailable") {

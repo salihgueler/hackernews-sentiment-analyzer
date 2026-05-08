@@ -70,7 +70,14 @@ function encodeRandomBase32(bytes: Uint8Array): string {
   }
   let value = 0n;
   for (let i = 0; i < 10; i++) {
-    value = (value << 8n) | BigInt(bytes[i]);
+    const byte = bytes[i];
+    if (byte === undefined) {
+      // Unreachable: the loop bound matches the length check above.
+      throw new Error(
+        `encodeRandomBase32: unexpected missing byte at index ${i.toString()}`,
+      );
+    }
+    value = (value << 8n) | BigInt(byte);
   }
   const out: string[] = new Array<string>(16);
   for (let i = 15; i >= 0; i--) {
