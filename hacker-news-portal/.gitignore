@@ -1,0 +1,18 @@
+# Dependencies
+node_modules/
+
+# Vite build output
+dist/
+
+# Prebuild-materialized reports (regenerated from ../strands-agent-typescript/reports/)
+public/reports/
+
+# macOS filesystem noise
+.DS_Store
+
+# Log files
+*.log
+
+# Local environment files
+.env
+.env.*
