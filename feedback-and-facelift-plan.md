@@ -17,30 +17,6 @@ These are the concrete defects and best-practice misses found in the audit. They
 
 No visual components change in this phase. The goal is to land tokens, fonts, and helpers so the Phase C component refactors are small diffs.
 
-### Task 10. Rewrite design tokens
-
-- [ ] 10.1 In `src/styles/tokens.css`, replace the color palette with:
-  - `--color-bg: #faf7f2`
-  - `--color-bg-elev: #ffffff`
-  - `--color-ink: #111827`
-  - `--color-ink-muted: #4b5563`
-  - `--color-accent: #e14a00`
-  - `--color-accent-soft: #ffe7d6`
-  - `--color-rule: #e6dfd4`
-  - `--color-focus: #0b63d6`
-  - `--color-error`, `--color-error-bg` retained, re-verified against the new bg.
-  - Sentiment chip tokens: `--color-sentiment-positive`, `--color-sentiment-negative`, `--color-sentiment-mixed`, `--color-sentiment-neutral`.
-- [ ] 10.2 Add a proper type scale in rem, with new tokens for display vs body:
-  - `--font-display`, `--font-body`, `--font-mono` (font-family vars)
-  - `--font-size-display-1` (3rem), `--font-size-display-2` (2.25rem)
-  - `--font-size-heading-1` (2rem) / `-2` (1.5rem) / `-3` (1.25rem)
-  - `--font-size-body` (1rem), `--font-size-small` (0.875rem), `--font-size-micro` (0.75rem)
-  - Line-heights: `--line-tight`, `--line-body`, `--line-loose`.
-- [ ] 10.3 Add radius, elevation, and rule tokens: `--radius-sm`, `--radius-md`, `--radius-lg`, `--rule-hairline: 1px`, `--shadow-soft`.
-- [ ] 10.4 Verify every new color pair meets WCAG AA for text (4.5:1) or non-text (3:1) as appropriate. Document the computed ratios in a comment above each pair.
-- [ ] 10.5 Keep the `prefers-reduced-motion` block untouched.
-- Rule source: `frontend-design` skill (bold, intentional, cohesive palette); accessibility § of the existing `tokens.css`.
-
 ### Task 11. Generic UI primitives
 
 - [ ] 11.1 Create `src/ui/Button.tsx` exposing `variant: "primary" | "ghost" | "danger"`, `size`, `isLoading`, and `icon` (optional `lucide-react` glyph). Uses the new tokens.
@@ -113,6 +89,15 @@ Every component rewrite must continue to satisfy the same a11y and state-machine
 - Rule source: workspace steering rule — update existing `README.md` only when public API or architecture changes.
 
 ## Completed Tasks
+
+### Phase B — Task 10. Rewrite design tokens
+
+- [x] 10.1 In `src/styles/tokens.css`, replace the color palette with the new set and add sentiment chip tokens. Legacy names (`--color-text`, `--color-text-muted`, `--color-border`) are kept as aliases pointing at the new names so Phase B lands without visual regressions; Phase C retires them.
+- [x] 10.2 Add a proper type scale in rem, with new tokens for display vs body, font families, and line-heights (`--line-tight`, `--line-body`, `--line-loose`).
+- [x] 10.3 Add radius, elevation, and rule tokens: `--radius-sm`, `--radius-md`, `--radius-lg`, `--rule-hairline: 1px`, `--shadow-soft`.
+- [x] 10.4 Verify every new color pair meets WCAG AA for text (4.5:1) or non-text (3:1) as appropriate. Computed ratios documented in a comment block above the palette.
+- [x] 10.5 Keep the `prefers-reduced-motion` block untouched.
+- Rule source: `frontend-design` skill (bold, intentional, cohesive palette); accessibility § of the existing `tokens.css`.
 
 ### Phase B — Task 9. Self-host the new font stack
 
