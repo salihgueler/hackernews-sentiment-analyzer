@@ -19,11 +19,11 @@ No visual components change in this phase. The goal is to land tokens, fonts, an
 
 ### Task 11. Generic UI primitives
 
-- [ ] 11.1 Create `src/ui/Button.tsx` exposing `variant: "primary" | "ghost" | "danger"`, `size`, `isLoading`, and `icon` (optional `lucide-react` glyph). Uses the new tokens.
+- [x] 11.1 Create `src/ui/Button.tsx` exposing `variant: "primary" | "ghost" | "danger"`, `size`, `isLoading`, and `icon` (optional `lucide-react` glyph). Uses the new tokens via co-located `Button.css`.
 - [ ] 11.2 Create `src/ui/Skeleton.tsx` exposing a shimmer-aware skeleton primitive (static rectangle under reduced motion).
 - [ ] 11.3 Create `src/ui/Chip.tsx` for sentiment/date chips, styled with the mono token.
 - [ ] 11.4 Create `src/ui/SectionLabel.tsx` for small-caps section headings.
-- [ ] 11.5 Import `lucide-react` only via top-level named imports; do not use deep subpaths (avoids the skill's `strict`/`noImplicitAny` warning).
+- [x] 11.5 Import `lucide-react` only via top-level named imports; do not use deep subpaths (avoids the skill's `strict`/`noImplicitAny` warning).
 - Rule sources: `rerender-no-inline-components` (stable component identity), `bundle-barrel-imports` (icons only via the transform), `frontend-design` (reusable primitives vs inline styling).
 
 ### Task 12. Scoped Markdown typography
@@ -89,6 +89,12 @@ Every component rewrite must continue to satisfy the same a11y and state-machine
 - Rule source: workspace steering rule — update existing `README.md` only when public API or architecture changes.
 
 ## Completed Tasks
+
+### Phase B — Task 11a. UI primitive — Button
+
+- [x] 11.1 Create `src/ui/Button.tsx` exposing `variant: "primary" | "ghost" | "danger"`, `size`, `isLoading`, and `icon` (optional `lucide-react` glyph). Uses the new tokens via co-located `Button.css`.
+- [x] 11.5 Import `lucide-react` only via top-level named imports (`LucideProps`). No deep subpaths.
+- Rule sources: `rerender-no-inline-components`, `bundle-barrel-imports`, `frontend-design`.
 
 ### Phase B — Task 10. Rewrite design tokens
 

@@ -1,0 +1,91 @@
+/*
+ * Button primitive (src/ui/Button.tsx).
+ *
+ * All visual details are driven by the tokens from src/styles/tokens.css
+ * so variants inherit palette, type scale, and focus-ring semantics.
+ *
+ * Contracts:
+ *   - `.ui-button` is the shared base and carries typography, sizing,
+ *     radius, padding, and the focus-visible inheritance.
+ *   - `.ui-button--primary|--ghost|--danger` layer visual tone onto the
+ *     base rule.
+ *   - `.ui-button--sm|--md` pick a size; `--md` is the default and is
+ *     applied alongside the base even if the caller omits the size
+ *     prop.
+ *   - `.ui-button[disabled]` and `[aria-busy="true"]` share a "not
+ *     interactive" appearance; the caller is responsible for emitting
+ *     one of the two attributes based on state.
+ *
+ * Reduced motion is inherited from the global
+ * `prefers-reduced-motion: reduce` block in tokens.css; no
+ * per-component override is required.
+ */
+
+.ui-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border: var(--rule-hairline) solid transparent;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: var(--font-size-body);
+  line-height: var(--line-tight);
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease,
+              border-color 150ms ease;
+}
+
+.ui-button:disabled,
+.ui-button[aria-busy="true"] {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.ui-button--sm {
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-size-small);
+}
+
+.ui-button--md {
+  padding: var(--space-2) var(--space-4);
+}
+
+.ui-button--primary {
+  background: var(--color-accent);
+  color: var(--color-bg-elev);
+  border-color: var(--color-accent);
+}
+
+.ui-button--primary:hover:not(:disabled):not([aria-busy="true"]) {
+  background: var(--color-ink);
+  border-color: var(--color-ink);
+}
+
+.ui-button--ghost {
+  background: transparent;
+  color: var(--color-ink);
+  border-color: var(--color-rule);
+}
+
+.ui-button--ghost:hover:not(:disabled):not([aria-busy="true"]) {
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
+}
+
+.ui-button--danger {
+  background: var(--color-error-bg);
+  color: var(--color-error);
+  border-color: var(--color-error);
+}
+
+.ui-button--danger:hover:not(:disabled):not([aria-busy="true"]) {
+  background: var(--color-error);
+  color: var(--color-bg-elev);
+}
+
+.ui-button__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
