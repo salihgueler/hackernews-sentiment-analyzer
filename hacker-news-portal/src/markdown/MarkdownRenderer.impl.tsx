@@ -6,13 +6,19 @@ import rehypeSanitize from "rehype-sanitize";
 import { sanitizeSchema } from "./sanitizeSchema";
 import { highlightPlugin } from "./highlight";
 
+import "./MarkdownRenderer.css";
+
 // ---------------------------------------------------------------------------
 // MarkdownRenderer implementation.
 //
 // This module is the actual bundle that `MarkdownRenderer.tsx` loads via
 // `React.lazy`, so the heavy Markdown + syntax-highlight stack stays off the
-// landing critical path (supports Req 15.1). Kept as a default export because
-// `React.lazy` requires a module that default-exports a component.
+// landing critical path (supports Req 15.1). The scoped `.md` typography
+// stylesheet co-located next to this file is imported here so it also rides
+// in the lazy chunk; nothing is added to the landing CSS payload.
+//
+// Kept as a default export because `React.lazy` requires a module that
+// default-exports a component.
 //
 // Pipeline (Req 10.1–10.4):
 //
@@ -29,18 +35,21 @@ import { highlightPlugin } from "./highlight";
 // - `highlightPlugin` is the pre-configured `rehype-highlight` tuple with
 //   `{ ignoreMissing: true, plainText: [] }` (Req 10.3, 10.4).
 //
+// Styling: every rendered element lives inside a `<div className="md">`
+// wrapper so the rules in `MarkdownRenderer.css` (all scoped under `.md`)
+// apply. Every tag targeted by the stylesheet — h2, h3, blockquote, code,
+// pre, a, table, ul, ol, img — is permitted by `sanitizeSchema` so no
+// content reaches the DOM un-styled.
+//
 // ErrorBoundary (Req 1.3, React-side safety net):
 //
 // A render-time throw anywhere under `<ReactMarkdown>` (e.g. an upstream plugin
 // emitting a malformed tree) is caught, logged via `console.error`, and
 // replaced with a fallback that surfaces the original report body inside a
 // `<pre>` so the user can still read it. A visible `role="alert"` banner
-// communicates the degradation to assistive tech.
-//
-// The boundary accepts the raw Markdown body as its `children` prop (a
-// `string`) so the fallback has the exact source to render, and the non-error
-// branch forwards that same string to `<ReactMarkdown>`. This mirrors the
-// design's "raw-text fallback with a visible banner" contract exactly.
+// communicates the degradation to assistive tech. The fallback and the
+// successful branch both live inside the `.md` wrapper so the <pre> fallback
+// still inherits the tokenized typography.
 // ---------------------------------------------------------------------------
 
 interface ErrorBoundaryProps {
@@ -71,10 +80,10 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   override render(): ReactNode {
     if (this.state.hasError) {
       return (
-        <>
+        <div className="md">
           <div role="alert">Could not render this report.</div>
           <pre>{this.props.children}</pre>
-        </>
+        </div>
       );
     }
     // `highlightPlugin` is exported `as const` (a readonly tuple), which
@@ -82,15 +91,17 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     // a fresh mutable tuple by indexed access so the `rehypePlugins` prop
     // type-checks without widening to `unknown[]`.
     return (
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        rehypePlugins={[
-          [rehypeSanitize, sanitizeSchema],
-          [highlightPlugin[0], highlightPlugin[1]],
-        ]}
-      >
-        {this.props.children}
-      </ReactMarkdown>
+      <div className="md">
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          rehypePlugins={[
+            [rehypeSanitize, sanitizeSchema],
+            [highlightPlugin[0], highlightPlugin[1]],
+          ]}
+        >
+          {this.props.children}
+        </ReactMarkdown>
+      </div>
     );
   }
 }

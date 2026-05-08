@@ -17,14 +17,6 @@ These are the concrete defects and best-practice misses found in the audit. They
 
 No visual components change in this phase. The goal is to land tokens, fonts, and helpers so the Phase C component refactors are small diffs.
 
-### Task 12. Scoped Markdown typography
-
-- [ ] 12.1 Create `src/markdown/MarkdownRenderer.css` with rules scoped under `.md` for `h2 / h3 / blockquote / code / pre / a / table / ul / ol / img`.
-- [ ] 12.2 Apply the className `md` to the renderer root in `MarkdownRenderer.impl.tsx`.
-- [ ] 12.3 Keep `rehype-highlight` theme wired (still ships with the lazy chunk; nothing added to the landing bundle).
-- [ ] 12.4 Verify the sanitizer schema still allows all the elements the new stylesheet targets.
-- Rule source: `frontend-design` (editorial tone, intentional typography); no regression to `bundle-dynamic-imports`.
-
 ---
 
 ## Phase C — Component facelift
@@ -80,6 +72,14 @@ Every component rewrite must continue to satisfy the same a11y and state-machine
 - Rule source: workspace steering rule — update existing `README.md` only when public API or architecture changes.
 
 ## Completed Tasks
+
+### Phase B — Task 12. Scoped Markdown typography
+
+- [x] 12.1 Create `src/markdown/MarkdownRenderer.css` with rules scoped under `.md` for `h2 / h3 / blockquote / code / pre / a / table / ul / ol / img`, plus `p`, `th`, `td`, and list-item spacing.
+- [x] 12.2 Apply the className `md` to the renderer root in `MarkdownRenderer.impl.tsx`. Both the success path and the error-fallback `<pre>` sit inside the wrapper so the tokenized typography still applies in the degraded state.
+- [x] 12.3 Keep `rehype-highlight` theme wired. The new stylesheet is imported from the lazy impl module, so Vite emits it as a separate `MarkdownRenderer-*.css` chunk loaded alongside the lazy JS. The landing `index-*.css` payload stays at 9.82 KB, unchanged from Task 11c.
+- [x] 12.4 Verify the sanitizer schema still allows all the elements the new stylesheet targets. `sanitizeSchema.ts` starts from `hast-util-sanitize`'s `defaultSchema` which already permits h2/h3/blockquote/code/pre/a/table/ul/ol/img and the other targeted tags.
+- Rule source: `frontend-design`; no regression to `bundle-dynamic-imports`.
 
 ### Phase B — Task 11c. UI primitives — Chip and SectionLabel
 

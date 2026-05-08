@@ -1,0 +1,137 @@
+/*
+ * Scoped Markdown typography (src/markdown/MarkdownRenderer.impl.tsx).
+ *
+ * Every rule in this file is scoped under `.md`, the className applied to
+ * the MarkdownRenderer root by `MarkdownRenderer.impl.tsx`. Nothing here
+ * leaks to the surrounding shell: selectors like `.md h2 { ... }` never
+ * match outside the rendered report body.
+ *
+ * Because MarkdownRenderer.impl.tsx is lazy-loaded via React.lazy, this
+ * stylesheet rides in the impl chunk and is therefore outside the
+ * landing critical path. No new CSS is added to index.css.
+ *
+ * Elements styled: h2, h3, blockquote, code, pre, a, table, ul, ol, img.
+ * The hast-util-sanitize defaultSchema (used by rehype-sanitize) already
+ * allows every one of these elements, so the sanitizer and the
+ * stylesheet are aligned.
+ */
+
+.md {
+  font-family: var(--font-body);
+  font-size: var(--font-size-body);
+  line-height: var(--line-body);
+  color: var(--color-ink);
+  max-width: 64ch;
+}
+
+.md > * + * {
+  margin-top: var(--space-4);
+}
+
+.md h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--font-size-heading-1);
+  line-height: var(--line-tight);
+  letter-spacing: -0.01em;
+  color: var(--color-ink);
+}
+
+.md h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--font-size-heading-2);
+  line-height: var(--line-tight);
+  color: var(--color-ink);
+}
+
+.md p {
+  margin: 0;
+}
+
+.md a {
+  color: var(--color-focus);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.md a:hover {
+  color: var(--color-accent);
+}
+
+.md blockquote {
+  margin: 0;
+  padding: var(--space-2) var(--space-4);
+  border-inline-start: 3px solid var(--color-accent);
+  background: var(--color-bg-elev);
+  color: var(--color-ink-muted);
+  font-style: italic;
+}
+
+.md blockquote > * + * {
+  margin-top: var(--space-3);
+}
+
+.md code {
+  font-family: var(--font-mono);
+  font-size: 0.95em;
+  padding: 0.1em 0.35em;
+  border-radius: var(--radius-sm);
+  background: var(--color-sentiment-neutral);
+  color: var(--color-ink);
+}
+
+.md pre {
+  margin: 0;
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-elev);
+  border: var(--rule-hairline) solid var(--color-rule);
+  overflow: auto;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-small);
+  line-height: var(--line-body);
+}
+
+.md pre code {
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  font-size: inherit;
+}
+
+.md ul,
+.md ol {
+  margin: 0;
+  padding-inline-start: var(--space-6);
+}
+
+.md ul > li + li,
+.md ol > li + li {
+  margin-top: var(--space-1);
+}
+
+.md table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-small);
+}
+
+.md th,
+.md td {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: var(--rule-hairline) solid var(--color-rule);
+  text-align: start;
+}
+
+.md th {
+  font-weight: 600;
+  color: var(--color-ink);
+  background: var(--color-bg-elev);
+}
+
+.md img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-sm);
+}
