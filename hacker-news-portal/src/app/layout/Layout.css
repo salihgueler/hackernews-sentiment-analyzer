@@ -1,0 +1,53 @@
+/*
+ * Portal shell (src/app/layout/Layout.tsx).
+ *
+ * A slim masthead sits at the top of every route: a small-caps eyebrow
+ * label (`SectionLabel`) above a display-serif site title, with the
+ * primary Generate Report button anchored to the trailing edge on the
+ * same row. Below the masthead, the Sidebar and the main content area
+ * share a hairline vertical rule.
+ *
+ * Tokens drive every color, size, and spacing choice. No value is
+ * hard-coded.
+ */
+
+.app-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-6) var(--space-4) var(--space-6);
+  border-bottom: var(--rule-hairline) solid var(--color-rule);
+  background: var(--color-bg);
+}
+
+.app-header__brand {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.app-header__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--font-size-display-2);
+  line-height: var(--line-tight);
+  letter-spacing: -0.01em;
+  color: var(--color-ink);
+}
+
+.app-body {
+  display: flex;
+  align-items: stretch;
+  min-height: calc(100vh - 6rem);
+}
+
+.app-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: var(--space-5) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}

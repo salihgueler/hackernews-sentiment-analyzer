@@ -23,14 +23,6 @@ No visual components change in this phase. The goal is to land tokens, fonts, an
 
 Every component rewrite must continue to satisfy the same a11y and state-machine contracts already documented in the source files (keep the comment blocks — edit them only where behavior changes).
 
-### Task 13. Masthead + Generate button
-
-- [ ] 13.1 Reshape `src/app/layout/Layout.tsx` into a slim masthead: small-caps eyebrow, display-serif site title, ghost-style Generate button.
-- [ ] 13.2 Replace inline `CSSProperties` with a co-located `Layout.module.css` (or Tailwind-less CSS file) using the new tokens. No new styling library added.
-- [x] 13.3 Swap the current `GenerateReportButton` implementation to use `Button` from `src/ui/Button.tsx` with `variant="primary"` and a `lucide-react` sparkle icon.
-- [x] 13.4 Keep the `aria-busy`, `disabled`, and async state-machine untouched.
-- [ ] 13.5 Verify the banner still lives inside `<main>` (Task 3).
-
 ### Task 14. Sidebar facelift
 
 - [ ] 14.1 Rebuild `src/app/layout/Sidebar.tsx` to group entries by `Today / This week / Earlier` using `sortReportsForDisplay` + a pure `groupByRecency` helper added to `src/domain/reportMetadata.ts`.
@@ -72,6 +64,13 @@ Every component rewrite must continue to satisfy the same a11y and state-machine
 - Rule source: workspace steering rule — update existing `README.md` only when public API or architecture changes.
 
 ## Completed Tasks
+
+### Phase C — Task 13b. Masthead layout
+
+- [x] 13.1 Reshape `src/app/layout/Layout.tsx` into a slim masthead: small-caps eyebrow via `SectionLabel`, display-serif site title, Generate button anchored on the trailing edge.
+- [x] 13.2 Replace inline `CSSProperties` with a co-located `Layout.css` using the new tokens. No new styling library added.
+- [x] 13.5 Verify the banner still lives inside `<main>` above `<Outlet />` (Task 3 semantics preserved).
+- Rule sources: `frontend-design`, `rendering-no-inline-styles` (tokens-only styling).
 
 ### Phase C — Task 13a. GenerateReportButton uses Button primitive
 
