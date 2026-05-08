@@ -17,15 +17,6 @@ These are the concrete defects and best-practice misses found in the audit. They
 
 No visual components change in this phase. The goal is to land tokens, fonts, and helpers so the Phase C component refactors are small diffs.
 
-### Task 11. Generic UI primitives
-
-- [x] 11.1 Create `src/ui/Button.tsx` exposing `variant: "primary" | "ghost" | "danger"`, `size`, `isLoading`, and `icon` (optional `lucide-react` glyph). Uses the new tokens via co-located `Button.css`.
-- [x] 11.2 Create `src/ui/Skeleton.tsx` exposing a shimmer-aware skeleton primitive (static rectangle under reduced motion).
-- [ ] 11.3 Create `src/ui/Chip.tsx` for sentiment/date chips, styled with the mono token.
-- [ ] 11.4 Create `src/ui/SectionLabel.tsx` for small-caps section headings.
-- [x] 11.5 Import `lucide-react` only via top-level named imports; do not use deep subpaths (avoids the skill's `strict`/`noImplicitAny` warning).
-- Rule sources: `rerender-no-inline-components` (stable component identity), `bundle-barrel-imports` (icons only via the transform), `frontend-design` (reusable primitives vs inline styling).
-
 ### Task 12. Scoped Markdown typography
 
 - [ ] 12.1 Create `src/markdown/MarkdownRenderer.css` with rules scoped under `.md` for `h2 / h3 / blockquote / code / pre / a / table / ul / ol / img`.
@@ -89,6 +80,12 @@ Every component rewrite must continue to satisfy the same a11y and state-machine
 - Rule source: workspace steering rule — update existing `README.md` only when public API or architecture changes.
 
 ## Completed Tasks
+
+### Phase B — Task 11c. UI primitives — Chip and SectionLabel
+
+- [x] 11.3 Create `src/ui/Chip.tsx` for sentiment/date chips, styled with the mono token. `tone="positive|negative|mixed|neutral"` maps onto the `--color-sentiment-*` tokens.
+- [x] 11.4 Create `src/ui/SectionLabel.tsx` for small-caps section headings.
+- Rule sources: `rerender-no-inline-components`, `frontend-design`.
 
 ### Phase B — Task 11b. UI primitive — Skeleton
 
