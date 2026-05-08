@@ -32,6 +32,14 @@
   --font-size-heading-2: 1.5rem;   /* 24px */
   --font-size-heading-3: 1.25rem;  /* 20px */
 
+  /*
+   * Temporary alias for the generic `--font-size-heading` token consumed by
+   * ReportView, EmptyArchiveView, and NotFoundView. Resolves to the h2-size
+   * rung today; Phase B replaces the type scale wholesale and retires this
+   * alias in favor of purpose-named tokens.
+   */
+  --font-size-heading: var(--font-size-heading-2);
+
   /* Spacing scale */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
