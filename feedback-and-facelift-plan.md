@@ -1,0 +1,213 @@
+# Portal Feedback & Facelift Plan
+
+Go through and implement the tasks below for the project under `hacker-news-portal/` folder to implement the following tasks.
+
+## Rules
+
+- NEVER skip the verification step
+- Move each completed task from their section to COMPLETED section (with related Phase and Task information).
+
+## Phase A — Issue fixes (must land before the facelift)
+
+These are the concrete defects and best-practice misses found in the audit. They are ordered so every later phase builds on a clean base.
+
+### Task 1. Fix broken / stale CSS tokens
+
+- [ ] 1.1 Audit `src/styles/tokens.css` and confirm `--font-size-heading` is not defined.
+- [ ] 1.2 Add `--font-size-heading: var(--font-size-heading-2);` to the `:root` block so existing usages resolve to a real value (temporary; Phase B replaces the scale wholesale).
+- [ ] 1.3 Grep for every `var(--font-size-heading)` callsite (currently `ReportView.tsx`, `EmptyArchiveView.tsx`, `NotFoundView.tsx`) and verify they now render at the intended size.
+- [ ] 1.4 Verify no other `var(--...)` in the repo references an undefined token.
+- Rule source: correctness / silent fallbacks; not a skill rule, but a real bug.
+
+### Task 2. Give the active NavLink a visible style
+
+- [ ] 2.1 Add a `.sidebar-link.active` CSS rule (left accent bar + bolder weight) to `tokens.css` or a new `Sidebar.module.css`.
+- [ ] 2.2 Replace the inline style on `NavLink` in `src/app/layout/Sidebar.tsx` with a stable `className="sidebar-link"` plus the `isActive` suffix.
+- [ ] 2.3 Confirm `aria-current="page"` is still emitted by React Router's built-in behavior.
+- [ ] 2.4 Verify focus ring (`:focus-visible`) still lands on the link and is visually distinct from the active state.
+- Rule source: WCAG 1.4.1 (color/identifier alone). Matches the `frontend-design` skill's guidance that active states must be visually intentional.
+
+### Task 3. Move the generation banner above `<Outlet />`
+
+- [ ] 3.1 In `src/features/generate/GenerationStatus.tsx`, split `GenerationStatusProvider` so the banner region is exposed as a separate `<GenerationStatusBanner />` component instead of being rendered as the last child.
+- [ ] 3.2 In `src/app/layout/Layout.tsx`, render `<GenerationStatusBanner />` inside `<main>` above `<Outlet />`, not at the end of the provider tree.
+- [ ] 3.3 Confirm `role="status"` / `role="alert"` semantics are preserved on the banner element.
+- [ ] 3.4 Verify the banner still clears on successful navigation after a run.
+- Rule source: UX correctness; also supports `rendering-conditional-render` (banner absence returns `null`, not an empty wrapper).
+
+### Task 4. Eliminate the duplicate `listReports()` render on landing
+
+- [ ] 4.1 In `src/app/routes.tsx`, extend `LandingRoute` to pass the selected `ReportMetadata` as an `initialMetadata` prop to `ReportView`.
+- [ ] 4.2 In `src/features/reports/ReportView.tsx`, add an optional `initialMetadata` prop to `ReportViewProps`.
+- [ ] 4.3 When `initialMetadata` is provided and matches the current `slug`, seed state with `{ kind: "ready", payload: { metadata, body: "" }, siblings: [...] }`-style fast path that only fetches the body (skip the second `listReports()` round trip).
+- [ ] 4.4 Keep the existing `Promise.all([getReport, listReports])` path for the direct-URL case (`/reports/:slug`).
+- [ ] 4.5 Confirm the static-backend module cache still deduplicates; this change removes a render cycle, not a network call.
+- Rule source: `async-dependencies` / `async-parallel` (avoid redundant awaits when a parent has already resolved them).
+
+### Task 5. Hoist placeholder JSX to module scope
+
+- [ ] 5.1 In `src/app/routes.tsx`, hoist the `<section>…Loading archive…</section>` fragment into a module-scoped constant.
+- [ ] 5.2 In `src/features/reports/ReportView.tsx`, hoist the `Loading report…` placeholder into a module-scoped constant.
+- [ ] 5.3 In `src/markdown/MarkdownRenderer.tsx`, hoist the `<p>Loading report…</p>` Suspense fallback.
+- [ ] 5.4 Keep alert banners dynamic — only the static fragments move.
+- Rule source: `rendering-hoist-jsx`. (Phase C replaces these with real skeletons, but hoisting first keeps the diff readable.)
+
+### Task 6. Prepare for scroll/resize-driven effects
+
+- [ ] 6.1 Create `src/app/hooks/useScrollY.ts` exposing a `useScrollY()` hook that reads `window.scrollY` through `useSyncExternalStore` with a `{ passive: true }` listener.
+- [ ] 6.2 Export a companion `useMediaQuery(query: string)` hook using the same `useSyncExternalStore` pattern.
+- [ ] 6.3 Wrap scroll-derived state updates in `startTransition` so scroll does not block paint.
+- [ ] 6.4 Do not consume the hooks yet; Phase C wires them into the new masthead and reveal animations.
+- Rule sources: `client-event-listeners` (dedupe), `client-passive-event-listeners` (passive), `rerender-transitions` (transition-wrapped updates).
+
+### Task 7. Tighten TypeScript, aligned with `strands-agent-typescript`
+
+- [ ] 7.1 Edit `hacker-news-portal/tsconfig.app.json`. Add `"noImplicitOverride": true`, `"forceConsistentCasingInFileNames": true`, `"noImplicitReturns": true`, `"noUncheckedIndexedAccess": true`, `"exactOptionalPropertyTypes": true`.
+- [ ] 7.2 Run `tsc -b` and fix every new error. Expected hot spots:
+  - `src/app/routes.tsx` — index accesses against `sortReportsForDisplay` results.
+  - `src/domain/reportMetadata.ts` — any `siblings[i]` index access.
+  - `src/wireBackend/types.ts` — confirm `BackendError.stage` assignment still satisfies `exactOptionalPropertyTypes`.
+  - `src/features/generate/GenerationStatus.tsx` — same for `setError` payloads.
+- [ ] 7.3 Resolve errors by narrowing (`if (value === undefined) …`) rather than widening types. No new `as` casts and no `any`.
+- [ ] 7.4 Update `tsconfig.node.json` with the same flags so `scripts/` and `plugins/` share the posture.
+- [ ] 7.5 Confirm `verbatimModuleSyntax` + the new flags compose cleanly.
+- Rule sources: TS strictness cross-referenced with `strands-agent-typescript/tsconfig.json`; the `vercel-react-best-practices` skill's compatibility note that deep third-party imports can defeat `strict`/`noImplicitAny`.
+
+### Task 8. Enable the React Compiler
+
+- [ ] 8.1 Add `babel-plugin-react-compiler` as a dev dependency in `hacker-news-portal/package.json`.
+- [ ] 8.2 Wire it into `vite.config.ts` via `@vitejs/plugin-react` options: `react({ babel: { plugins: [["babel-plugin-react-compiler", { target: "19" }]] } })`.
+- [ ] 8.3 Build and verify the bundle size does not regress; confirm no new runtime warnings in the dev server console.
+- [ ] 8.4 Spot-check that existing `useCallback` / `useMemo` calls are still correct (compiler augments, does not replace).
+- Rule source: unlocks `rerender-*` category of rules automatically for every new component authored in Phase B/C.
+
+---
+
+## Phase B — Design-system foundation
+
+No visual components change in this phase. The goal is to land tokens, fonts, and helpers so the Phase C component refactors are small diffs.
+
+### Task 9. Self-host the new font stack
+
+- [ ] 9.1 Add `@fontsource-variable/fraunces`, `@fontsource-variable/inter-tight`, `@fontsource-variable/jetbrains-mono` to dependencies.
+- [ ] 9.2 Import the required weight ranges in `src/main.tsx` (after the `tokens.css` import) so the fonts load on the critical path but still benefit from Vite's asset hashing.
+- [ ] 9.3 Confirm no runtime Google Fonts or CDN fetch — everything self-hosted.
+- [ ] 9.4 Verify fonts are tree-shaken per weight; import only the axes we use.
+- Rule source: `frontend-design` typography guidance (avoid Inter/Roboto defaults, commit to characterful pairing); `bundle-barrel-imports` (avoid pulling full foundry barrels).
+
+### Task 10. Rewrite design tokens
+
+- [ ] 10.1 In `src/styles/tokens.css`, replace the color palette with:
+  - `--color-bg: #faf7f2`
+  - `--color-bg-elev: #ffffff`
+  - `--color-ink: #111827`
+  - `--color-ink-muted: #4b5563`
+  - `--color-accent: #e14a00`
+  - `--color-accent-soft: #ffe7d6`
+  - `--color-rule: #e6dfd4`
+  - `--color-focus: #0b63d6`
+  - `--color-error`, `--color-error-bg` retained, re-verified against the new bg.
+  - Sentiment chip tokens: `--color-sentiment-positive`, `--color-sentiment-negative`, `--color-sentiment-mixed`, `--color-sentiment-neutral`.
+- [ ] 10.2 Add a proper type scale in rem, with new tokens for display vs body:
+  - `--font-display`, `--font-body`, `--font-mono` (font-family vars)
+  - `--font-size-display-1` (3rem), `--font-size-display-2` (2.25rem)
+  - `--font-size-heading-1` (2rem) / `-2` (1.5rem) / `-3` (1.25rem)
+  - `--font-size-body` (1rem), `--font-size-small` (0.875rem), `--font-size-micro` (0.75rem)
+  - Line-heights: `--line-tight`, `--line-body`, `--line-loose`.
+- [ ] 10.3 Add radius, elevation, and rule tokens: `--radius-sm`, `--radius-md`, `--radius-lg`, `--rule-hairline: 1px`, `--shadow-soft`.
+- [ ] 10.4 Verify every new color pair meets WCAG AA for text (4.5:1) or non-text (3:1) as appropriate. Document the computed ratios in a comment above each pair.
+- [ ] 10.5 Keep the `prefers-reduced-motion` block untouched.
+- Rule source: `frontend-design` skill (bold, intentional, cohesive palette); accessibility § of the existing `tokens.css`.
+
+### Task 11. Generic UI primitives
+
+- [ ] 11.1 Create `src/ui/Button.tsx` exposing `variant: "primary" | "ghost" | "danger"`, `size`, `isLoading`, and `icon` (optional `lucide-react` glyph). Uses the new tokens.
+- [ ] 11.2 Create `src/ui/Skeleton.tsx` exposing a shimmer-aware skeleton primitive (static rectangle under reduced motion).
+- [ ] 11.3 Create `src/ui/Chip.tsx` for sentiment/date chips, styled with the mono token.
+- [ ] 11.4 Create `src/ui/SectionLabel.tsx` for small-caps section headings.
+- [ ] 11.5 Import `lucide-react` only via top-level named imports; do not use deep subpaths (avoids the skill's `strict`/`noImplicitAny` warning).
+- Rule sources: `rerender-no-inline-components` (stable component identity), `bundle-barrel-imports` (icons only via the transform), `frontend-design` (reusable primitives vs inline styling).
+
+### Task 12. Scoped Markdown typography
+
+- [ ] 12.1 Create `src/markdown/MarkdownRenderer.css` with rules scoped under `.md` for `h2 / h3 / blockquote / code / pre / a / table / ul / ol / img`.
+- [ ] 12.2 Apply the className `md` to the renderer root in `MarkdownRenderer.impl.tsx`.
+- [ ] 12.3 Keep `rehype-highlight` theme wired (still ships with the lazy chunk; nothing added to the landing bundle).
+- [ ] 12.4 Verify the sanitizer schema still allows all the elements the new stylesheet targets.
+- Rule source: `frontend-design` (editorial tone, intentional typography); no regression to `bundle-dynamic-imports`.
+
+---
+
+## Phase C — Component facelift
+
+Every component rewrite must continue to satisfy the same a11y and state-machine contracts already documented in the source files (keep the comment blocks — edit them only where behavior changes).
+
+### Task 13. Masthead + Generate button
+
+- [ ] 13.1 Reshape `src/app/layout/Layout.tsx` into a slim masthead: small-caps eyebrow, display-serif site title, ghost-style Generate button.
+- [ ] 13.2 Replace inline `CSSProperties` with a co-located `Layout.module.css` (or Tailwind-less CSS file) using the new tokens. No new styling library added.
+- [ ] 13.3 Swap the current `GenerateReportButton` implementation to use `Button` from `src/ui/Button.tsx` with `variant="primary"` and a `lucide-react` sparkle icon.
+- [ ] 13.4 Keep the `aria-busy`, `disabled`, and async state-machine untouched.
+- [ ] 13.5 Verify the banner still lives inside `<main>` (Task 3).
+
+### Task 14. Sidebar facelift
+
+- [ ] 14.1 Rebuild `src/app/layout/Sidebar.tsx` to group entries by `Today / This week / Earlier` using `sortReportsForDisplay` + a pure `groupByRecency` helper added to `src/domain/reportMetadata.ts`.
+- [ ] 14.2 Each entry shows title (body font) + date/slug (mono font, `--font-size-micro`).
+- [ ] 14.3 Active entry uses the `.sidebar-link.active` rule from Task 2, plus a 2px accent left-rule.
+- [ ] 14.4 Add hover/focus preload: on `onMouseEnter` / `onFocus`, call a new `preloadReport(slug)` helper exported from `src/wireBackend/staticBackend.ts` that warms the body cache via `fetch(..., { priority: 'low' })` without awaiting.
+- [ ] 14.5 Replace the text loading state with `<Skeleton>` rows.
+- [ ] 14.6 Keep the error-branch Retry button and `aria-label="Report archive"` on the nav.
+- Rule sources: `bundle-preload` (intent-based preload), `rerender-no-inline-components` (dedicated group component).
+
+### Task 15. Report view facelift
+
+- [ ] 15.1 Rework `src/features/reports/ReportView.tsx` into an article layout: 64-ch column, display-serif `<h1>`, mono `<time>` below a hairline rule, optional sentiment `<Chip>` row.
+- [ ] 15.2 Consume the new `initialMetadata` prop from Task 4 so the landing route paints instantly.
+- [ ] 15.3 Replace the inline loading `<p>` with a `<Skeleton>` layout matching the final shape.
+- [ ] 15.4 The "Report could not be loaded" banner uses the new error token palette.
+- [ ] 15.5 Lazy Markdown renderer already in place — no regression here.
+
+### Task 16. Empty / NotFound / Error facelift
+
+- [ ] 16.1 Redesign `EmptyArchiveView`, `NotFoundView`, and the router `ErrorFallback` with a small inline-SVG illustration (hoisted to module scope per `rendering-hoist-jsx`) and the new type scale.
+- [ ] 16.2 Each view gets a single primary action (`Generate` / `Back to latest` / `Retry`) rendered via `Button` primitive.
+- [ ] 16.3 Keep `role="alert"` on error copy and `<h2>` landmark.
+
+### Task 17. Motion and micro-interactions
+
+- [ ] 17.1 Add a CSS-only staggered reveal for the masthead → first sidebar section → article header on the initial landing paint, using `animation-delay` on three elements only.
+- [ ] 17.2 The reveal is fully neutralized by the existing `prefers-reduced-motion: reduce` block — verify in devtools.
+- [ ] 17.3 Progress banner gets a subtle shimmer on its inner rail (still `role="status"`, still readable without motion).
+- [ ] 17.4 Focus-visible polish: 2px `--color-focus` outline + 2px offset for all interactive elements.
+- [ ] 17.5 No third-party motion library added; pure CSS keyframes.
+- Rule source: `frontend-design` (restrained, intentional motion); existing `prefers-reduced-motion` contract in `tokens.css`.
+
+### Task 18. Documentation
+
+- [ ] 18.1 Update `hacker-news-portal/README.md` only (do not create new docs) with: the new font/token story, the React Compiler note, and the new tsconfig flags.
+- [ ] 18.2 Update `hacker-news-portal/README.md` sections describing `npm run dev / build / preview` if any script changes.
+- [ ] 18.3 No other `.md` files created.
+- Rule source: workspace steering rule — update existing `README.md` only when public API or architecture changes.
+
+## Completed Tasks
+
+---
+
+## Dependency graph
+
+```
+1,2,3,4,5 ──┐
+6 ──────────┤
+7 ──────────┼──► 8 ──► 9 ──► 10 ──► 11 ──► 12 ──► 13,14,15,16 ──► 17 ──► 18
+```
+
+Phase A tasks (1–8) are independent of each other and can land in parallel PRs, but each is a separate commit. Phase B tasks (9–12) land after the compiler is on. Phase C tasks (13–16) run in parallel once the UI primitives are ready. Task 17 folds in last because it depends on the final markup. Task 18 is the docs sweep.
+
+## Out of scope
+
+- Agent code, model selection, Bedrock region, and Zod schemas: untouched.
+- New routes, new features beyond the sentiment-chip row on the report header.
+- Any backend changes (no new `/__api/*` endpoints).
+- Tests — explicitly not authored unless requested.
+- Production deploy config — the Vite dev/prod pipeline is unchanged.
