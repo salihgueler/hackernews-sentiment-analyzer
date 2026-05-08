@@ -6,7 +6,6 @@
 - [MIT and their Effective Prompting Guideline](https://mitsloanedtech.mit.edu/ai/basics/effective-prompts/)
 - [Open AI's Prompt Engineering Guideline](https://help.openai.com/en/articles/6654000-best-practices-for-prompt-engineering-with-the-openai-api)
 - [Digital Ocean Prompt Best Practices](https://www.digitalocean.com/resources/articles/prompt-engineering-best-practices)
--
 
 ## Skills
 
@@ -52,4 +51,3 @@
 ## Learning
 
 - [Claude Code in Action](https://anthropic.skilljar.com/claude-code-in-action)
--
