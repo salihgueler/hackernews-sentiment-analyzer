@@ -41,6 +41,7 @@ export {
 // Runtime values from `./staticBackend`.
 export {
   getReport,
+  getReportBody,
   invalidateStaticCaches,
   listReports,
 } from "./staticBackend";

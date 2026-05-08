@@ -6,6 +6,7 @@ import { sortReportsForDisplay } from "../domain/reportMetadata";
 import { EmptyArchiveView } from "../features/reports/EmptyArchiveView";
 import { NotFoundView } from "../features/reports/NotFoundView";
 import { ReportView } from "../features/reports/ReportView";
+import type { ReportMetadata } from "../wireBackend/types";
 import { BackendError } from "../wireBackend/types";
 import { listReports } from "../wireBackend/staticBackend";
 import { Layout } from "./layout/Layout";
@@ -65,9 +66,11 @@ export default AppRoutes;
 //   2. Select the first entry of `sortReportsForDisplay(entries)` — that is
 //      the most recent generatedAt, with slug tie-breaker (Req 1.1,
 //      Property 1).
-//   3. Render `<ReportView slug={selected.slug} />` while keeping the URL at
-//      "/" (ReportView honors the `slug` prop over the route param so no
-//      navigation is needed).
+//   3. Render `<ReportView slug={selected.slug} initialMetadata={selected}
+//      />` while keeping the URL at "/" (ReportView honors the `slug` prop
+//      over the route param so no navigation is needed, and accepts the
+//      already-resolved metadata so it can skip its own `listReports()`
+//      round-trip on the landing path).
 //   4. Render `EmptyArchiveView` when the index has zero entries (Req 1.4).
 //   5. Render a main-view `<p role="alert">Archive unavailable.</p>` on a
 //      `DATA_SOURCE_UNAVAILABLE` rejection. The Sidebar is a sibling in
@@ -79,7 +82,7 @@ type LandingState =
   | { readonly kind: "loading" }
   | { readonly kind: "empty" }
   | { readonly kind: "unavailable" }
-  | { readonly kind: "ready"; readonly slug: string };
+  | { readonly kind: "ready"; readonly metadata: ReportMetadata };
 
 function LandingRoute(): ReactElement {
   const [state, setState] = useState<LandingState>({ kind: "loading" });
@@ -105,7 +108,7 @@ function LandingRoute(): ReactElement {
           setState({ kind: "empty" });
           return;
         }
-        setState({ kind: "ready", slug: first.slug });
+        setState({ kind: "ready", metadata: first });
       },
       (err: unknown) => {
         if (cancelled) return;
@@ -149,7 +152,9 @@ function LandingRoute(): ReactElement {
     );
   }
 
-  return <ReportView slug={state.slug} />;
+  return (
+    <ReportView slug={state.metadata.slug} initialMetadata={state.metadata} />
+  );
 }
 
 // ---------------------------------------------------------------------------

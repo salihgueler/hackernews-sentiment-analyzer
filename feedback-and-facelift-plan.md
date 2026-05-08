@@ -11,15 +11,6 @@ Go through and implement the tasks below for the project under `hacker-news-port
 
 These are the concrete defects and best-practice misses found in the audit. They are ordered so every later phase builds on a clean base.
 
-### Task 4. Eliminate the duplicate `listReports()` render on landing
-
-- [ ] 4.1 In `src/app/routes.tsx`, extend `LandingRoute` to pass the selected `ReportMetadata` as an `initialMetadata` prop to `ReportView`.
-- [ ] 4.2 In `src/features/reports/ReportView.tsx`, add an optional `initialMetadata` prop to `ReportViewProps`.
-- [ ] 4.3 When `initialMetadata` is provided and matches the current `slug`, seed state with `{ kind: "ready", payload: { metadata, body: "" }, siblings: [...] }`-style fast path that only fetches the body (skip the second `listReports()` round trip).
-- [ ] 4.4 Keep the existing `Promise.all([getReport, listReports])` path for the direct-URL case (`/reports/:slug`).
-- [ ] 4.5 Confirm the static-backend module cache still deduplicates; this change removes a render cycle, not a network call.
-- Rule source: `async-dependencies` / `async-parallel` (avoid redundant awaits when a parent has already resolved them).
-
 ### Task 5. Hoist placeholder JSX to module scope
 
 - [ ] 5.1 In `src/app/routes.tsx`, hoist the `<section>…Loading archive…</section>` fragment into a module-scoped constant.
@@ -167,6 +158,15 @@ Every component rewrite must continue to satisfy the same a11y and state-machine
 - Rule source: workspace steering rule — update existing `README.md` only when public API or architecture changes.
 
 ## Completed Tasks
+
+### Phase A — Task 4. Eliminate the duplicate `listReports()` render on landing
+
+- [x] 4.1 In `src/app/routes.tsx`, extend `LandingRoute` to pass the selected `ReportMetadata` as an `initialMetadata` prop to `ReportView`.
+- [x] 4.2 In `src/features/reports/ReportView.tsx`, add an optional `initialMetadata` prop to `ReportViewProps`.
+- [x] 4.3 When `initialMetadata` is provided and matches the current `slug`, seed state with `{ kind: "ready", payload: { metadata, body: "" }, siblings: [...] }`-style fast path that only fetches the body (skip the second `listReports()` round trip).
+- [x] 4.4 Keep the existing `Promise.all([getReport, listReports])` path for the direct-URL case (`/reports/:slug`).
+- [x] 4.5 Confirm the static-backend module cache still deduplicates; this change removes a render cycle, not a network call.
+- Rule source: `async-dependencies` / `async-parallel` (avoid redundant awaits when a parent has already resolved them).
 
 ### Phase A — Task 1. Fix broken / stale CSS tokens
 

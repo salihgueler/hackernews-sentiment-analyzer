@@ -214,6 +214,31 @@ export async function getReport(slug: string): Promise<ReportPayload> {
   return { metadata, body };
 }
 
+/**
+ * Returns just the stripped Markdown body for `slug` using the same LRU
+ * cache as `getReport`. Used by callers that have already resolved the
+ * `ReportMetadata` elsewhere (e.g. the landing route, which threads the
+ * selected metadata through so `ReportView` can skip its own index
+ * round-trip).
+ *
+ * Error mapping:
+ * - Network or read failure → `DATA_SOURCE_UNAVAILABLE`.
+ *
+ * Unlike `getReport` this does NOT verify `slug` against the current
+ * index, because the caller has already guaranteed the metadata. A
+ * missing file will still surface as `DATA_SOURCE_UNAVAILABLE` from the
+ * underlying `fetchBody` call.
+ */
+export async function getReportBody(slug: string): Promise<string> {
+  const cachedBody = readCachedBody(slug);
+  if (cachedBody !== undefined) {
+    return cachedBody;
+  }
+  const body = await fetchBody(slug);
+  touchBody(slug, body);
+  return body;
+}
+
 // ---------------------------------------------------------------------------
 // Invalidation
 // ---------------------------------------------------------------------------

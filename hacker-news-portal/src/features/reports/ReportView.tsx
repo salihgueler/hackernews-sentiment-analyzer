@@ -4,7 +4,12 @@ import { useParams } from "react-router-dom";
 
 import { displayTitle } from "../../domain/reportMetadata";
 import { MarkdownRenderer } from "../../markdown/MarkdownRenderer";
-import { BackendError, getReport, listReports } from "../../wireBackend";
+import {
+  BackendError,
+  getReport,
+  getReportBody,
+  listReports,
+} from "../../wireBackend";
 import type { ReportMetadata, ReportPayload } from "../../wireBackend";
 import { NotFoundView } from "./NotFoundView";
 
@@ -17,12 +22,24 @@ import { NotFoundView } from "./NotFoundView";
 // absent, the slug is read from `useParams()` for the `/reports/:slug`
 // route. If neither source yields a slug, the view renders `NotFoundView`.
 //
-// Data flow: the backend call is `listReports` + `getReport(slug)` in
-// parallel via `Promise.all`. `listReports` provides the siblings array
-// `displayTitle` needs for the "same generatedAt, empty title" tie-breaker
-// branch of the fallback title logic (Req 4.2, 4.3). Every request is keyed
-// on the slug so a navigation to a different slug discards in-flight
-// responses for the previous slug (Req 3.3, 15.2).
+// Data flow (two paths):
+//   - Fast path (landing): the parent has already resolved the selected
+//     `ReportMetadata` and passes it as `initialMetadata`. In that case we
+//     fetch only the Markdown body via `getReportBody(slug)` and use
+//     `[initialMetadata]` as the siblings set; `displayTitle` only needs
+//     siblings when the title is empty and collides on `generatedAt`, so a
+//     single-element array is a safe seed for the landing render. This
+//     removes the second `listReports()` round-trip entirely on the
+//     landing path.
+//   - Direct-URL path (`/reports/:slug`): no `initialMetadata` is
+//     available, so we fall back to `Promise.all([getReport(slug),
+//     listReports()])` to get the full sibling set for the display-title
+//     fallback (Req 4.2, 4.3). The static-backend module cache
+//     deduplicates so subsequent navigations within the same session
+//     still only pay one HTTP round-trip per resource.
+//
+// Every request is keyed on the slug so a navigation to a different slug
+// discards in-flight responses for the previous slug (Req 3.3, 15.2).
 //
 // Error mapping:
 //   - `NOT_FOUND` from `getReport` → render `<NotFoundView slug={slug} />`
@@ -37,6 +54,7 @@ import { NotFoundView } from "./NotFoundView";
 
 export interface ReportViewProps {
   readonly slug?: string;
+  readonly initialMetadata?: ReportMetadata;
 }
 
 type ViewState =
@@ -49,7 +67,10 @@ type ViewState =
       readonly siblings: ReadonlyArray<ReportMetadata>;
     };
 
-export function ReportView({ slug: slugProp }: ReportViewProps): ReactElement {
+export function ReportView({
+  slug: slugProp,
+  initialMetadata,
+}: ReportViewProps): ReactElement {
   const params = useParams();
   const slug = slugProp ?? params.slug;
 
@@ -63,6 +84,37 @@ export function ReportView({ slug: slugProp }: ReportViewProps): ReactElement {
 
     let cancelled = false;
     setState({ kind: "loading" });
+
+    // Fast path: landing route has already resolved the metadata for this
+    // slug, so we only need the body. Siblings are seeded from the single
+    // provided metadata; `displayTitle` only consults siblings for the
+    // empty-title + colliding-generatedAt branch, which cannot apply here.
+    if (initialMetadata !== undefined && initialMetadata.slug === slug) {
+      getReportBody(slug).then(
+        (body) => {
+          if (cancelled) return;
+          setState({
+            kind: "ready",
+            payload: { metadata: initialMetadata, body },
+            siblings: [initialMetadata],
+          });
+        },
+        (err: unknown) => {
+          if (cancelled) return;
+          if (
+            err instanceof BackendError &&
+            err.code === "DATA_SOURCE_UNAVAILABLE"
+          ) {
+            setState({ kind: "unavailable" });
+            return;
+          }
+          setState({ kind: "unavailable" });
+        },
+      );
+      return () => {
+        cancelled = true;
+      };
+    }
 
     Promise.all([getReport(slug), listReports()]).then(
       ([payload, siblings]) => {
@@ -92,7 +144,7 @@ export function ReportView({ slug: slugProp }: ReportViewProps): ReactElement {
     return () => {
       cancelled = true;
     };
-  }, [slug]);
+  }, [slug, initialMetadata]);
 
   if (state.kind === "loading") {
     return (
