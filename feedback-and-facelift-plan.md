@@ -11,14 +11,6 @@ Go through and implement the tasks below for the project under `hacker-news-port
 
 These are the concrete defects and best-practice misses found in the audit. They are ordered so every later phase builds on a clean base.
 
-### Task 6. Prepare for scroll/resize-driven effects
-
-- [ ] 6.1 Create `src/app/hooks/useScrollY.ts` exposing a `useScrollY()` hook that reads `window.scrollY` through `useSyncExternalStore` with a `{ passive: true }` listener.
-- [ ] 6.2 Export a companion `useMediaQuery(query: string)` hook using the same `useSyncExternalStore` pattern.
-- [ ] 6.3 Wrap scroll-derived state updates in `startTransition` so scroll does not block paint.
-- [ ] 6.4 Do not consume the hooks yet; Phase C wires them into the new masthead and reveal animations.
-- Rule sources: `client-event-listeners` (dedupe), `client-passive-event-listeners` (passive), `rerender-transitions` (transition-wrapped updates).
-
 ### Task 7. Tighten TypeScript, aligned with `strands-agent-typescript`
 
 - [ ] 7.1 Edit `hacker-news-portal/tsconfig.app.json`. Add `"noImplicitOverride": true`, `"forceConsistentCasingInFileNames": true`, `"noImplicitReturns": true`, `"noUncheckedIndexedAccess": true`, `"exactOptionalPropertyTypes": true`.
@@ -150,6 +142,14 @@ Every component rewrite must continue to satisfy the same a11y and state-machine
 - Rule source: workspace steering rule — update existing `README.md` only when public API or architecture changes.
 
 ## Completed Tasks
+
+### Phase A — Task 6. Prepare for scroll/resize-driven effects
+
+- [x] 6.1 Create `src/app/hooks/useScrollY.ts` exposing a `useScrollY()` hook that reads `window.scrollY` through `useSyncExternalStore` with a `{ passive: true }` listener.
+- [x] 6.2 Export a companion `useMediaQuery(query: string)` hook using the same `useSyncExternalStore` pattern.
+- [x] 6.3 Wrap scroll-derived state updates in `startTransition` so scroll does not block paint.
+- [x] 6.4 Do not consume the hooks yet; Phase C wires them into the new masthead and reveal animations.
+- Rule sources: `client-event-listeners` (dedupe), `client-passive-event-listeners` (passive), `rerender-transitions` (transition-wrapped updates).
 
 ### Phase A — Task 5. Hoist placeholder JSX to module scope
 
