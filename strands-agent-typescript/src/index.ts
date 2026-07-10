@@ -8,6 +8,7 @@
  *   npm run dev -- --out reports/today.md 10   # write report to a file
  */
 
+import { randomUUID } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -61,15 +62,48 @@ function buildPrompt(args: ReadonlyArray<string>): string {
 }
 
 /**
+ * Format `now` as a `YYYY-MM-DD-HHMM` stamp for filenames and fallback slugs.
+ */
+function timestampStamp(now: Date): string {
+  const pad = (n: number): string => n.toString().padStart(2, "0");
+  return (
+    `${now.getFullYear().toString()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}` +
+    `-${pad(now.getHours())}${pad(now.getMinutes())}`
+  );
+}
+
+/**
  * Default output file: reports/hn-sentiment-<YYYY-MM-DD-HHMM>.md
  */
 function defaultOutputPath(): string {
-  const now = new Date();
-  const pad = (n: number): string => n.toString().padStart(2, "0");
-  const stamp =
-    `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}` +
-    `-${pad(now.getHours())}${pad(now.getMinutes())}`;
-  return path.join("reports", `hn-sentiment-${stamp}.md`);
+  return path.join("reports", `hn-sentiment-${timestampStamp(new Date())}.md`);
+}
+
+/**
+ * Canonical slug format shared with the portal (`hacker-news-portal`):
+ * lowercase ASCII alphanumerics joined by single hyphens, length [1, 80].
+ */
+const SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const MAX_SLUG_LENGTH = 80;
+
+/**
+ * Derive a portal-compatible slug from the output filename stem. Lowercases,
+ * collapses any run of non-alphanumerics to a single hyphen, trims stray
+ * hyphens, and enforces the length ceiling. Falls back to a timestamp-based
+ * slug when the stem cannot yield a valid slug (e.g. all punctuation).
+ */
+function slugFromOutputPath(outputPath: string): string {
+  const stem = path.basename(outputPath).replace(/\.md$/i, "");
+  const normalized = stem
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, MAX_SLUG_LENGTH)
+    .replace(/-+$/g, "");
+  if (normalized.length > 0 && SLUG_REGEX.test(normalized)) {
+    return normalized;
+  }
+  return `hn-sentiment-${timestampStamp(new Date())}`;
 }
 
 /**
@@ -87,18 +121,38 @@ function extractReportText(result: AgentResult): string {
   return parts.join("\n\n").trim();
 }
 
-function buildMarkdownDocument(prompt: string, report: string): string {
-  const generatedAt = new Date().toISOString();
+interface ReportFrontMatter {
+  readonly id: string;
+  readonly title: string;
+  readonly slug: string;
+  readonly generatedAt: string;
+  readonly prompt: string;
+}
+
+/**
+ * Build a portal-compatible Markdown document: a YAML front-matter block
+ * (matching the portal's `ReportFrontMatterSchema`) followed by the report
+ * body. Each scalar is emitted via `JSON.stringify`, which produces a valid
+ * YAML double-quoted scalar — this safely escapes colons, quotes, and
+ * newlines in the prompt/title and forces `generatedAt` to parse as a string
+ * (an unquoted ISO timestamp would be coerced to a YAML date).
+ */
+function buildMarkdownDocument(
+  front: ReportFrontMatter,
+  report: string,
+): string {
+  const line = (key: keyof ReportFrontMatter): string =>
+    `${key}: ${JSON.stringify(front[key])}`;
   return [
-    "# Hacker News Sentiment Report",
-    "",
-    `_Generated: ${generatedAt}_`,
-    "",
-    `**Prompt:** ${prompt}`,
-    "",
+    "---",
+    line("id"),
+    line("title"),
+    line("slug"),
+    line("generatedAt"),
+    line("prompt"),
     "---",
     "",
-    report,
+    report.trim(),
     "",
   ].join("\n");
 }
@@ -128,7 +182,17 @@ async function main(): Promise<void> {
     );
   }
 
-  const markdown = buildMarkdownDocument(prompt, report);
+  const generatedAt = new Date().toISOString();
+  const markdown = buildMarkdownDocument(
+    {
+      id: randomUUID(),
+      title: `Hacker News Sentiment Report (${generatedAt.slice(0, 10)})`,
+      slug: slugFromOutputPath(outputPath),
+      generatedAt,
+      prompt,
+    },
+    report,
+  );
   await writeReport(outputPath, markdown);
 
   console.log(`\n===== Sentiment Report written to ${outputPath} =====\n`);
